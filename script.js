@@ -1,12 +1,12 @@
-// ------------------- Data -------------------
+// ---------------- data ----------------
 const stocks = {
-  "Tata Motors": random(600, 950),
-  "Adani Green": random(820, 1500),
-  "Wipro": random(220, 360),
-  "MRF": random(90000, 150000),
-  "Reliance": random(1400, 1800),
-  "HDFC": random(1100, 1600),
-  "Affle 3i Ltd": random(100, 220)
+  "Tata Motors": +(Math.random()*(950-600)+600).toFixed(2),
+  "Adani Green": +(Math.random()*(1500-820)+820).toFixed(2),
+  "Wipro": +(Math.random()*(360-220)+220).toFixed(2),
+  "MRF": +(Math.random()*(150000-90000)+90000).toFixed(2),
+  "Reliance": +(Math.random()*(1800-1400)+1400).toFixed(2),
+  "HDFC": +(Math.random()*(1600-1100)+1100).toFixed(2),
+  "Affle 3i Ltd": +(Math.random()*(220-100)+100).toFixed(2)
 };
 
 const mutualFunds = [
@@ -20,98 +20,77 @@ const mutualFunds = [
   "HDFC Large Cap Fund"
 ];
 
-function random(a,b){ return +(Math.random()*(b-a)+a).toFixed(2) }
+// ---------------- storage ----------------
+let portfolio = JSON.parse(localStorage.getItem('nv_portfolio') || '{"stocks":{},"funds":{},"cash":0}');
+function save(){ localStorage.setItem('nv_portfolio', JSON.stringify(portfolio)); }
 
-// ------------------ Local storage ------------------
-let portfolio = JSON.parse(localStorage.getItem('nivesh_portfolio') || '{"stocks":{},"funds":{},"cash":0}');
-function save(){ localStorage.setItem('nivesh_portfolio', JSON.stringify(portfolio)); }
-
-// ------------------ Elements ------------------
+// ---------------- elements ----------------
 const stockList = document.getElementById('stockList');
 const fundList = document.getElementById('fundList');
 const portfolioList = document.getElementById('portfolioList');
 const portfolioSummary = document.getElementById('portfolioSummary');
-const details = document.getElementById('details');
+const detailArea = document.getElementById('detailArea');
 
 const totalAmountEl = document.getElementById('totalAmount');
 const oneDayChangeEl = document.getElementById('oneDayChange');
-const changePctEl = document.getElementById('changePercent');
+const pctEl = document.getElementById('pctChange');
 
-const tabs = document.querySelectorAll('.tab');
-const navItems = document.querySelectorAll('.nav-item');
+const modal = document.getElementById('modal');
+const fab = document.getElementById('fab');
+const addAmount = document.getElementById('addAmount');
+const addConfirm = document.getElementById('addConfirm');
+const addCancel = document.getElementById('addCancel');
+const closeModal = document.getElementById('closeModal');
 
-// ------------------ Theme ------------------
+const navBtns = document.querySelectorAll('.nav-btn');
+
+// ---------------- theme ----------------
 const root = document.documentElement;
-const savedTheme = localStorage.getItem('nivesh_theme') || 'dark';
-if(savedTheme === 'light') root.classList.add('light');
+if(localStorage.getItem('nv_theme') === 'light') root.classList.add('light');
 document.getElementById('themeToggle').addEventListener('click', ()=>{
   root.classList.toggle('light');
-  const theme = root.classList.contains('light') ? 'light' : 'dark';
-  localStorage.setItem('nivesh_theme', theme);
+  localStorage.setItem('nv_theme', root.classList.contains('light') ? 'light' : 'dark');
 });
 
-// ------------------ Tab navigation ------------------
-tabs.forEach(t=>{
-  t.addEventListener('click', ()=>{
-    tabs.forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    showPanel(t.dataset.target);
+// ---------------- nav behavior ----------------
+navBtns.forEach(b=>{
+  b.addEventListener('click', ()=>{
+    navBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const target = b.dataset.target;
+    document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+    document.getElementById(target).classList.remove('hidden');
   });
 });
-navItems.forEach(n=>{
-  n.addEventListener('click', ()=> {
-    navItems.forEach(x=>x.classList.remove('active'));
-    n.classList.add('active');
-    if(n.dataset.target) showPanel(n.dataset.target);
-  });
-});
-function showPanel(id){
-  document.querySelectorAll('.panel-body').forEach(p=>p.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
+// default show stocks
+document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+document.getElementById('stocksPanel').classList.remove('hidden');
 
-// ------------------ Render Stocks ------------------
+// ---------------- render functions ----------------
 function renderStocks(){
-  stockList.innerHTML='';
-  for(let name in stocks){
+  stockList.innerHTML = '';
+  for(const name in stocks){
     const price = stocks[name];
     const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
-      <div class="meta">
+      <div>
         <div class="title">${name}</div>
         <div class="price">₹${price}</div>
       </div>
       <div class="controls">
-        <input class="qty" type="number" min="1" value="1" aria-label="qty ${name}">
+        <input class="qty" type="number" min="1" value="1" />
         <button class="btn primary buy" data-name="${name}">Buy</button>
       </div>
     `;
     stockList.appendChild(card);
   }
 }
-renderStocks();
-
-// Buy handler
-stockList.addEventListener('click', e=>{
-  if(!e.target.classList.contains('buy')) return;
-  const name = e.target.dataset.name;
-  const qtyEl = e.target.parentElement.querySelector('.qty');
-  const qty = Math.max(1, parseInt(qtyEl.value||1,10));
-  portfolio.stocks[name] = (portfolio.stocks[name]||0) + qty;
-  save();
-  toast(`Bought ${qty} × ${name}`);
-  updateTotals();
-});
-
-// ------------------ Render Funds ------------------
 function renderFunds(){
-  fundList.innerHTML='';
+  fundList.innerHTML = '';
   mutualFunds.forEach(name=>{
     const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
-      <div class="meta">
-        <div class="title">${name}</div>
-      </div>
+      <div><div class="title">${name}</div></div>
       <div class="controls">
         <button class="btn ghost add" data-name="${name}">Add Unit</button>
       </div>
@@ -119,143 +98,120 @@ function renderFunds(){
     fundList.appendChild(card);
   });
 }
-renderFunds();
-
-fundList.addEventListener('click', e=>{
-  if(!e.target.classList.contains('add')) return;
-  const name = e.target.dataset.name;
-  portfolio.funds[name] = (portfolio.funds[name]||0) + 1;
-  save();
-  toast(`Added 1 unit to ${name}`);
-  updateTotals();
-});
-
-// ------------------ Portfolio ------------------
 function renderPortfolio(){
-  portfolioList.innerHTML=''; details.innerHTML='';
-  let total=portfolio.cash||0;
-  for(let name in portfolio.stocks){
-    const qty = portfolio.stocks[name];
-    const price = stocks[name]||0;
-    total += qty*price;
-    const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `
-      <div class="meta">
-        <div class="title">${name}</div>
-        <div class="price">Qty: ${qty} • ₹${price} each</div>
-      </div>
-      <div class="controls">
-        <button class="btn ghost sell" data-type="stock" data-name="${name}">Sell 1</button>
-        <button class="btn ghost chart" data-name="${name}">Chart</button>
-      </div>
-    `;
-    portfolioList.appendChild(card);
+  portfolioList && (portfolioList.innerHTML = '');
+  detailArea && (detailArea.innerHTML = '');
+  let total = portfolio.cash || 0;
+  for(const k in portfolio.stocks){
+    total += (stocks[k]||0)*portfolio.stocks[k];
   }
-  for(let name in portfolio.funds){
-    const units = portfolio.funds[name];
-    const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `
-      <div class="meta">
-        <div class="title">${name}</div>
-        <div class="price">Units: ${units}</div>
-      </div>
-      <div class="controls">
-        <button class="btn ghost redeem" data-name="${name}">Redeem</button>
-      </div>
-    `;
-    portfolioList.appendChild(card);
+  // funds: treat each unit as random small value (~100)
+  for(const f in portfolio.funds){
+    total += (portfolio.funds[f]||0) * 100;
   }
-  portfolioSummary.innerHTML = `<div style="font-weight:800">Total value: ₹${total.toFixed(2)}</div><div style="color:var(--muted)">Cash: ₹${(portfolio.cash||0).toFixed(2)}</div>`;
-  if(!portfolioList.children.length) portfolioList.innerHTML = '<div class="card">No holdings</div>';
+  totalAmountEl.textContent = `₹${total.toFixed(2)}`;
+  oneDayChangeEl.textContent = `1 Day Change: ₹${(Math.random()*20-10).toFixed(2)}`;
+  pctEl.textContent = `▲ ${(Math.random()*1).toFixed(2)}%`;
+  portfolioSummary && (portfolioSummary.innerHTML = `<div style="font-weight:800">Total: ₹${total.toFixed(2)}</div><div style="color:var(--muted)">Cash: ₹${(portfolio.cash||0).toFixed(2)}</div>`);
+  // holdings list
+  const list = portfolioList;
+  if(list){
+    if(Object.keys(portfolio.stocks).length===0 && Object.keys(portfolio.funds).length===0){
+      list.innerHTML = `<div class="card">No holdings yet.</div>`;
+    } else {
+      for(const s in portfolio.stocks){
+        const qty = portfolio.stocks[s];
+        const price = stocks[s]||0;
+        const card = document.createElement('div'); card.className='card';
+        card.innerHTML = `<div><div class="title">${s}</div><div class="price">Qty: ${qty} • ₹${price}</div></div>
+        <div class="controls">
+          <button class="btn ghost sell" data-name="${s}">Sell 1</button>
+          <button class="btn ghost chart" data-name="${s}">Chart</button>
+        </div>`;
+        list.appendChild(card);
+      }
+      for(const f in portfolio.funds){
+        const units = portfolio.funds[f];
+        const card = document.createElement('div'); card.className='card';
+        card.innerHTML = `<div><div class="title">${f}</div><div class="price">Units: ${units}</div></div>
+        <div class="controls"><button class="btn ghost redeem" data-name="${f}">Redeem</button></div>`;
+        list.appendChild(card);
+      }
+    }
+  }
 }
 
-portfolioList.addEventListener('click', e=>{
-  const name = e.target.dataset.name;
-  const type = e.target.dataset.type;
+// ---------------- events ----------------
+stockList.addEventListener('click', (e)=>{
+  if(e.target.classList.contains('buy')){
+    const name = e.target.dataset.name;
+    const qtyEl = e.target.parentElement.querySelector('.qty');
+    const q = Math.max(1, parseInt(qtyEl.value||1,10));
+    portfolio.stocks[name] = (portfolio.stocks[name]||0) + q;
+    save(); renderPortfolio(); showToast(`Bought ${q} × ${name}`);
+  }
+});
+
+fundList.addEventListener('click', (e)=>{
+  if(e.target.classList.contains('add')){
+    const name = e.target.dataset.name;
+    portfolio.funds[name] = (portfolio.funds[name]||0) + 1;
+    save(); renderPortfolio(); showToast(`Added 1 unit to ${name}`);
+  }
+});
+
+portfolioList && portfolioList.addEventListener('click', (e)=>{
   if(e.target.classList.contains('sell')){
+    const name = e.target.dataset.name;
     if(!portfolio.stocks[name]) return;
     portfolio.stocks[name]--;
     if(portfolio.stocks[name]===0) delete portfolio.stocks[name];
     portfolio.cash = (portfolio.cash||0) + (stocks[name]||0);
-    save(); renderPortfolio(); updateTotals(); toast(`Sold 1 × ${name}`);
+    save(); renderPortfolio(); showToast(`Sold 1 × ${name}`);
   } else if(e.target.classList.contains('redeem')){
+    const name = e.target.dataset.name;
     if(!portfolio.funds[name]) return;
     portfolio.funds[name]--;
     if(portfolio.funds[name]===0) delete portfolio.funds[name];
-    save(); renderPortfolio(); updateTotals(); toast(`Redeemed 1 unit`);
+    save(); renderPortfolio(); showToast(`Redeemed 1 unit`);
   } else if(e.target.classList.contains('chart')){
-    showChart(name);
+    const name = e.target.dataset.name;
+    showMiniChart(name);
   }
 });
 
-// ------------------ Chart ------------------
-function showChart(name){
-  details.innerHTML = '';
-  const box = document.createElement('div'); box.className='card';
-  box.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px">${name} — 30d</h4><canvas id="chartCanvas"></canvas></div>`;
-  details.appendChild(box);
-  const ctx = document.getElementById('chartCanvas').getContext('2d');
-  const price = stocks[name]||100;
-  const labels=[]; const data=[];
-  let cur = price;
-  for(let i=30;i>=1;i--){ cur += (Math.random()-0.5)*(price*0.02); data.push(+cur.toFixed(2)); labels.push(`${i}d`); }
-  if(window._lastChart) window._lastChart.destroy();
-  window._lastChart = new Chart(ctx, {
-    type:'line',
-    data:{labels,datasets:[{label:name,data,borderColor: (data[data.length-1]>=data[0])? '#16c784' : '#ff6b6b',fill:false,tension:0.3}]},
-    options:{plugins:{legend:{display:false}},responsive:true,maintainAspectRatio:false}
-  });
-}
-
-// ------------------ Update totals ------------------
-function updateTotals(){
-  let total=portfolio.cash||0;
-  for(let k in portfolio.stocks){ total += (stocks[k]||0)*portfolio.stocks[k]; }
-  totalAmountEl.textContent = `₹${total.toFixed(2)}`;
-  const change = +(Math.random()*40-20).toFixed(2);
-  oneDayChangeEl.textContent = `1 Day Change: ₹${Math.abs(change)}`;
-  const pct = ((Math.abs(change)/Math.max(total,1))*100).toFixed(2);
-  changePctEl.textContent = `${change>=0?'▲':'▼'} ${pct}%`;
-  changePctEl.className = 'pct ' + (change>=0 ? 'up' : 'down');
-  renderPortfolio();
-}
-
-// ------------------ Modal (Add Funds) ------------------
-const modal = document.getElementById('modal');
-const fab = document.getElementById('fab');
-const closeModal = document.getElementById('closeModal');
-const confirmAdd = document.getElementById('confirmAdd');
-const cancelAdd = document.getElementById('cancelAdd');
-const addAmount = document.getElementById('addAmount');
-
-fab.addEventListener('click', ()=> openModal());
-closeModal.addEventListener('click', ()=> closeModalFn());
-cancelAdd.addEventListener('click', ()=> closeModalFn());
-confirmAdd.addEventListener('click', ()=>{
+// FAB & modal
+fab.addEventListener('click', ()=>{ modal.classList.remove('hidden'); addAmount.focus(); });
+closeModal && closeModal.addEventListener('click', ()=> modal.classList.add('hidden'));
+addCancel && addCancel.addEventListener('click', ()=> modal.classList.add('hidden'));
+addConfirm && addConfirm.addEventListener('click', ()=>{
   const amt = Math.max(1, +(addAmount.value||0));
   portfolio.cash = (portfolio.cash||0) + amt;
-  save(); closeModalFn(); updateTotals(); toast(`Added ₹${amt.toFixed(2)} to cash`);
-});
-function openModal(){ modal.classList.remove('hidden'); addAmount.focus(); }
-function closeModalFn(){ modal.classList.add('hidden'); }
-
-// ------------------ Toast ------------------
-function toast(txt){
-  const t = document.createElement('div'); t.className='toast'; t.textContent = txt;
-  Object.assign(t.style,{background:'rgba(0,0,0,0.7)',color:'white',padding:'8px 12px',borderRadius:'8px',marginTop:'8px'});
-  const wrap = document.getElementById('toastWrap'); wrap.appendChild(t);
-  setTimeout(()=> { t.style.opacity=0; setTimeout(()=>t.remove(),400); },1600);
-}
-
-// ------------------ Small helpers ------------------
-function ensureUI(){
-  renderStocks(); renderFunds(); renderPortfolio(); updateTotals();
-}
-ensureUI();
-
-// keyboard escapes for modal
-document.addEventListener('keydown', e=>{
-  if(e.key==='Escape' && !modal.classList.contains('hidden')) closeModalFn();
+  save(); modal.classList.add('hidden'); renderPortfolio(); showToast(`Added ₹${amt}`);
 });
 
-// quick save readme commit trick: call updateTotals after operations to keep display fresh
+// chart generation
+function showMiniChart(name){
+  detailArea.innerHTML = '';
+  const wrapper = document.createElement('div'); wrapper.className = 'card';
+  wrapper.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px">${name} — 30d</h4><canvas id="miniChart" style="height:150px"></canvas></div>`;
+  detailArea.appendChild(wrapper);
+
+  const ctx = document.getElementById('miniChart').getContext('2d');
+  const labels=[]; const data=[];
+  let base = stocks[name]||100;
+  for(let i=30;i>0;i--){ base += (Math.random()-0.5)*(base*0.015); data.push(+base.toFixed(2)); labels.push(i); }
+  if(window._chart) window._chart.destroy();
+  window._chart = new Chart(ctx, {type:'line',data:{labels,data,datasets:[{data,borderColor:'#16c784',fill:false,tension:0.3}]},options:{plugins:{legend:{display:false}},responsive:true,maintainAspectRatio:false}});
+}
+
+// ---------------- toasts ----------------
+const toastEl = document.getElementById('toast');
+function showToast(txt){
+  if(!toastEl) return;
+  toastEl.textContent = txt; toastEl.classList.remove('hidden');
+  setTimeout(()=> toastEl.classList.add('hidden'),1500);
+}
+
+// ---------------- init ----------------
+renderStocks(); renderFunds(); renderPortfolio();
