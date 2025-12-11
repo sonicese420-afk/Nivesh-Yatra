@@ -44,48 +44,48 @@
   </main>
 
   <!-- bottom nav -->
-  <nav class="bottom-nav">
+  <nav class="bottom-nav" id="bottomNav">
     <button class="tab active" data-tab="stocks" id="tab-stocks">📈<span>Stocks</span></button>
     <button class="tab" data-tab="funds" id="tab-funds">📊<span>Funds</span></button>
     <button class="tab" data-tab="portfolio" id="tab-portfolio">📁<span>Portfolio</span></button>
   </nav>
 
-  <!-- stock detail modal (bottom sheet) -->
-  <div id="modal" class="modal hidden" aria-hidden="true">
-    <div class="modal-content">
-      <button id="closeModal" class="close-modal">✕</button>
-      <div id="detailHeader" class="detail-header">
-        <div>
-          <div id="detailName" class="detail-name">Reliance Industries Ltd</div>
-          <div id="detailSub" class="detail-sub muted">Stock | RELIANCE</div>
-        </div>
-        <div class="detail-right">
-          <div id="detailPrice" class="detail-price">₹0</div>
-          <div id="detailPL" class="detail-pl muted">▲0.00%</div>
-        </div>
+  <!-- FULL PAGE DETAIL (hidden until open) -->
+  <div id="detailPage" class="detail-page hidden" aria-hidden="true">
+    <div class="detail-top">
+      <button id="backButton" class="back-btn">←</button>
+      <div class="detail-title">
+        <div id="detailName" class="detail-name">Reliance Industries Ltd</div>
+        <div id="detailSub" class="detail-sub muted">Stock | RELIANCE</div>
       </div>
+      <div class="detail-right-head">
+        <div id="detailPrice" class="detail-price">₹0</div>
+        <div id="detailPL" class="detail-pl muted"></div>
+      </div>
+    </div>
 
-      <div class="chart-area card" id="detailArea">
+    <div class="detail-body">
+      <div class="chart-wrap card">
         <canvas id="historyChart"></canvas>
-        <div class="times">
-          <button class="time active" data-range="1d">1D</button>
-          <button class="time" data-range="1w">1W</button>
-          <button class="time" data-range="1m">1M</button>
-          <button class="time" data-range="6m">6M</button>
-        </div>
       </div>
 
-      <div class="trade-actions">
-        <div class="qty-row">
-          <label>Qty</label>
-          <input id="tradeQty" type="number" min="1" value="1" />
-        </div>
-        <div class="trade-buttons">
-          <button id="btnBuy" class="btn btn-primary">Buy</button>
-          <button id="btnSell" class="btn btn-danger">Sell</button>
-          <button id="btnSip" class="btn btn-outline">SIP</button>
-        </div>
+      <div class="times-wrap">
+        <button class="time active" data-range="1d">1D</button>
+        <button class="time" data-range="1w">1W</button>
+        <button class="time" data-range="1m">1M</button>
+        <button class="time" data-range="6m">6M</button>
       </div>
+
+      <div class="detail-stats card" id="detailStats">
+        <!-- optional stats rows -->
+      </div>
+    </div>
+
+    <!-- fixed bottom action bar -->
+    <div class="action-bar" id="actionBar">
+      <button id="btnSell" class="btn btn-danger">SELL</button>
+      <button id="btnBuy" class="btn btn-primary">BUY</button>
+      <button id="btnSip" class="btn btn-outline">SIP</button>
     </div>
   </div>
 
