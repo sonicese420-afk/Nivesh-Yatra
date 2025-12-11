@@ -1,6 +1,7 @@
-/* ---------- Sample data ---------- */
+/* ---------- helper ---------- */
 function random(a,b){ return +(Math.random()*(b-a)+a).toFixed(2) }
 
+/* ---------- data ---------- */
 const stocks = {
   "Reliance Industries Ltd":"RELIANCE",
   "Tata Motors":"TATAMOTORS",
@@ -11,11 +12,8 @@ const stocks = {
   "Affle 3i Ltd":"AFFLE"
 };
 
-/* create a simple price map (separate from symbol map) */
 const currentPrices = {};
-Object.keys(stocks).forEach((name)=>{
-  currentPrices[name] = random(200, 2000);
-});
+Object.keys(stocks).forEach((name)=> currentPrices[name] = random(200, 2000) );
 
 const mutualFunds = [
   "Edelweiss Nifty Midcap150 Momentum 50 Index Fund",
@@ -29,7 +27,7 @@ const mutualFunds = [
 let portfolio = JSON.parse(localStorage.getItem('ny_portfolio')) || { stocks: {}, funds: {} };
 function save(){ localStorage.setItem('ny_portfolio', JSON.stringify(portfolio)) }
 
-/* ---------- DOM endpoints ---------- */
+/* ---------- DOM ---------- */
 const stocksList = document.getElementById('stocksList');
 const fundsList  = document.getElementById('fundsList');
 const portfolioList = document.getElementById('portfolioList');
@@ -46,20 +44,21 @@ const portPanel   = document.getElementById('ny_portfolio_panel');
 
 let portfolioChart = null;
 
-/* ---------- render single list item (stock) ---------- */
+/* ---------- UI helpers ---------- */
 function makeLogoFor(name){
-  // try first character(s)
   const initials = name.split(' ').slice(0,2).map(s=>s[0]).join('').toUpperCase();
   const el = document.createElement('div'); el.className='item-logo'; el.textContent = initials;
   return el;
 }
 
+/* ---------- render stocks as separate cards ---------- */
 function renderStocks(){
   stocksList.innerHTML = '';
   Object.keys(stocks).forEach(name=>{
     const sym = stocks[name];
     const price = currentPrices[name] = currentPrices[name] || random(200, 2000);
-    const pct = random(-2,2);
+    const pct = random(-2.5,2.5);
+
     const wrapper = document.createElement('div'); wrapper.className='list-item';
 
     const left = document.createElement('div'); left.className='item-left';
@@ -70,31 +69,30 @@ function renderStocks(){
     meta.appendChild(title); meta.appendChild(sub);
     left.appendChild(meta);
 
-    const right = document.createElement('div'); right.className='item-right';
-    const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${price}`;
-    const change = document.createElement('div'); change.className='item-change ' + (pct>=0? 'change-up':'change-down');
-    change.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
-    right.appendChild(priceEl); right.appendChild(change);
+    const rightBlock = document.createElement('div'); rightBlock.className='right-block';
 
-    // controls (qty + buy)
+    // controls
     const ctr = document.createElement('div'); ctr.className='controls';
     const qty = document.createElement('input'); qty.type='number'; qty.min=1; qty.value=1; qty.className='qty';
     const btn = document.createElement('button'); btn.className='btn-buy'; btn.textContent='Buy';
     btn.onclick = ()=> buyStock(name, Number(qty.value), price);
     ctr.appendChild(qty); ctr.appendChild(btn);
 
-    wrapper.appendChild(left);
-    // right area + controls combined
-    const rightBundle = document.createElement('div'); rightBundle.style.display='flex'; rightBundle.style.alignItems='center'; rightBundle.style.gap='12px';
-    rightBundle.appendChild(ctr); rightBundle.appendChild(right);
+    // price area
+    const right = document.createElement('div'); right.className='item-right';
+    const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${price}`;
+    const change = document.createElement('div'); change.className='item-change ' + (pct>=0? 'change-up':'change-down');
+    change.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
+    right.appendChild(priceEl); right.appendChild(change);
 
-    wrapper.appendChild(rightBundle);
+    rightBlock.appendChild(ctr); rightBlock.appendChild(right);
 
+    wrapper.appendChild(left); wrapper.appendChild(rightBlock);
     stocksList.appendChild(wrapper);
   });
 }
 
-/* ---------- funds renderer ---------- */
+/* ---------- render funds as cards ---------- */
 function renderFunds(){
   fundsList.innerHTML = '';
   mutualFunds.forEach(name=>{
@@ -110,28 +108,26 @@ function renderFunds(){
     meta.appendChild(title); meta.appendChild(sub);
     left.appendChild(meta);
 
-    const right = document.createElement('div'); right.className='item-right';
-    const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${nav}`;
-    const change = document.createElement('div'); change.className='item-change ' + (pct>=0? 'change-up':'change-down');
-    change.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
-    right.appendChild(priceEl); right.appendChild(change);
-
+    const rightBlock = document.createElement('div'); rightBlock.className='right-block';
     const ctr = document.createElement('div'); ctr.className='controls';
     const qty = document.createElement('input'); qty.type='number'; qty.min=1; qty.value=1; qty.className='qty';
     const btn = document.createElement('button'); btn.className='btn-buy'; btn.textContent='Add';
     btn.onclick = ()=> buyFund(name, Number(qty.value), nav);
     ctr.appendChild(qty); ctr.appendChild(btn);
 
-    wrapper.appendChild(left);
-    const rightBundle = document.createElement('div'); rightBundle.style.display='flex'; rightBundle.style.alignItems='center'; rightBundle.style.gap='12px';
-    rightBundle.appendChild(ctr); rightBundle.appendChild(right);
-    wrapper.appendChild(rightBundle);
+    const right = document.createElement('div'); right.className='item-right';
+    const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${nav}`;
+    const change = document.createElement('div'); change.className='item-change ' + (pct>=0? 'change-up':'change-down');
+    change.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
+    right.appendChild(priceEl); right.appendChild(change);
 
+    rightBlock.appendChild(ctr); rightBlock.appendChild(right);
+    wrapper.appendChild(left); wrapper.appendChild(rightBlock);
     fundsList.appendChild(wrapper);
   });
 }
 
-/* ---------- buy handlers ---------- */
+/* ---------- purchase logic ---------- */
 function buyStock(name, qty, price){
   if(qty <= 0) return;
   if(!portfolio.stocks[name]) portfolio.stocks[name] = { qty:0, price:0 };
@@ -157,13 +153,12 @@ function buyFund(name, units, nav){
   save(); renderPortfolio(); renderFunds(); showToast(`${units} units of ${name} added`);
 }
 
-/* ---------- portfolio render + chart ---------- */
+/* ---------- portfolio render & arrow indicator ---------- */
 function renderPortfolio(){
   portfolioList.innerHTML = '';
   let totalValue = 0, totalCost = 0;
-  const wrapper = document.createElement('div');
+  const frag = document.createDocumentFragment();
 
-  // stocks
   Object.entries(portfolio.stocks).forEach(([name,rec])=>{
     const priceNow = currentPrices[name] || random(200,1200);
     const value = +(priceNow * rec.qty);
@@ -172,23 +167,28 @@ function renderPortfolio(){
 
     const row = document.createElement('div'); row.className='port-row';
     const left = document.createElement('div'); left.className='port-left';
-    const label = document.createElement('div'); label.textContent = name; label.style.fontWeight = 700;
+    const logo = makeLogoFor(name); logo.style.width='44px'; logo.style.height='44px';
+    left.appendChild(logo);
+    const meta = document.createElement('div'); meta.style.display='flex'; meta.style.flexDirection='column';
+    const title = document.createElement('div'); title.className='port-title'; title.textContent = name;
     const sub = document.createElement('div'); sub.className='port-sub'; sub.textContent = `${rec.qty} qty @ ₹${rec.price.toFixed(2)}`;
-    left.appendChild(label); left.appendChild(sub);
+    meta.appendChild(title); meta.appendChild(sub);
+    left.appendChild(meta);
 
     const right = document.createElement('div'); right.className='port-right';
     right.innerHTML = `<div>₹${value.toFixed(2)}</div>`;
     const diff = +(value - cost);
-    const pl = document.createElement('div');
-    pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`;
+    const arrow = document.createElement('span'); arrow.className='port-arrow';
+    arrow.textContent = diff >= 0 ? '▲' : '▼';
+    arrow.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
+    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`;
     pl.style.color = diff>=0? 'var(--success)': 'var(--danger)';
-    right.appendChild(pl);
+    right.appendChild(arrow); right.appendChild(pl);
 
     row.appendChild(left); row.appendChild(right);
-    wrapper.appendChild(row);
+    frag.appendChild(row);
   });
 
-  // funds
   Object.entries(portfolio.funds).forEach(([name,rec])=>{
     const nav = rec.nav || random(60,300);
     const value = +(nav * rec.units);
@@ -197,27 +197,32 @@ function renderPortfolio(){
 
     const row = document.createElement('div'); row.className='port-row';
     const left = document.createElement('div'); left.className='port-left';
-    const label = document.createElement('div'); label.textContent = name; label.style.fontWeight = 700;
+    const logo = makeLogoFor(name); logo.style.width='44px'; logo.style.height='44px';
+    left.appendChild(logo);
+    const meta = document.createElement('div'); meta.style.display='flex'; meta.style.flexDirection='column';
+    const title = document.createElement('div'); title.className='port-title'; title.textContent = name;
     const sub = document.createElement('div'); sub.className='port-sub'; sub.textContent = `${rec.units} units @ ₹${rec.price.toFixed(2)}`;
-    left.appendChild(label); left.appendChild(sub);
+    meta.appendChild(title); meta.appendChild(sub);
+    left.appendChild(meta);
 
     const right = document.createElement('div'); right.className='port-right';
     right.innerHTML = `<div>₹${value.toFixed(2)}</div>`;
     const diff = +(value - cost);
-    const pl = document.createElement('div');
-    pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`;
+    const arrow = document.createElement('span'); arrow.className='port-arrow';
+    arrow.textContent = diff >= 0 ? '▲' : '▼';
+    arrow.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
+    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`;
     pl.style.color = diff>=0? 'var(--success)': 'var(--danger)';
-    right.appendChild(pl);
+    right.appendChild(arrow); right.appendChild(pl);
 
     row.appendChild(left); row.appendChild(right);
-    wrapper.appendChild(row);
+    frag.appendChild(row);
   });
 
-  if(wrapper.children.length === 0){
-    const e = document.createElement('div'); e.style.color='var(--muted)'; e.textContent='No holdings yet.';
-    portfolioList.appendChild(e);
+  if(!frag.children || frag.children.length === 0){
+    const e = document.createElement('div'); e.style.color='var(--muted)'; e.textContent='No holdings yet.'; portfolioList.appendChild(e);
   } else {
-    portfolioList.appendChild(wrapper);
+    portfolioList.appendChild(frag);
   }
 
   const plTotal = totalValue - totalCost;
@@ -236,12 +241,13 @@ function renderPortfolioChart(totalValue){
     const d = new Date(); d.setMonth(d.getMonth()-i);
     labels.push(d.toLocaleString('default', { month:'short' }));
   }
-  let base = totalValue > 0 ? totalValue : 2000;
-  const data = [ +(base*0.98).toFixed(2) ];
-  for(let i=1;i<labels.length;i++){
-    const prev = data[i-1];
-    const change = prev * (random(-0.06, 0.06));
-    data.push( +(prev + change).toFixed(2) );
+  let startVal = totalValue > 0 ? totalValue : 2000;
+  const data = [];
+  for(let i=0;i<labels.length;i++){
+    // simulate gently varying series
+    const v = +(startVal * (1 + (random(-0.06,0.06))).toFixed(2));
+    data.push(v);
+    startVal = v;
   }
 
   const wrap = document.getElementById('portfolioChartWrap');
@@ -254,6 +260,7 @@ function renderPortfolioChart(totalValue){
     data:{ labels, datasets:[{ label:'Portfolio', data, borderColor:'#2E8B7E', backgroundColor:'rgba(46,139,126,0.12)', fill:true, tension:0.3 }]},
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:'#9fb3b0'}}, y:{ticks:{color:'#9fb3b0'}} } }
   });
+
   const c = document.getElementById('portfolioChart');
   c.style.width = '100%';
   c.style.height = '260px';
@@ -276,7 +283,7 @@ function activateNav(tab){
 function showToast(txt){
   const t = document.createElement('div'); t.textContent = txt;
   Object.assign(t.style,{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:'120px',background:'rgba(0,0,0,0.75)',padding:'8px 14px',borderRadius:'10px',zIndex:999});
-  document.body.appendChild(t); setTimeout(()=> t.remove(),1500);
+  document.body.appendChild(t); setTimeout(()=> t.remove(),1400);
 }
 
 /* ---------- init ---------- */
@@ -286,5 +293,5 @@ function init(){
 }
 init();
 
-/* Expose for console debugging */
-window._ny = { portfolio, renderPortfolio, renderStocks, renderFunds };
+/* expose for debug */
+window._ny = { portfolio, renderPortfolio, renderStocks, renderFunds, currentPrices };
