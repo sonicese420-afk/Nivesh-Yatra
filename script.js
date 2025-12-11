@@ -1,22 +1,24 @@
-/* script.js - simplified list UI (no buy buttons, no percent chips on cards)
-   Cards are clickable -> openItemDetail(name,type) placeholder for future modal.
+/* app logic for Stocks/Funds/Portfolio demo
+   - single-file app logic
+   - persistent portfolio via localStorage
+   - Chart.js for detail chart, synthetic test data
 */
 
-/* helpers */
-function random(a,b){ return +(Math.random()*(b-a)+a).toFixed(2) }
-
-/* data */
+/* -------------------------
+   Data
+   -------------------------*/
 const stocks = {
-  "Tata Motors":"TATAMOTORS",
-  "Adani Green":"ADANIGREEN",
-  "Wipro":"WIPRO",
-  "MRF":"MRF",
-  "Reliance":"RELIANCE",
-  "HDFC":"HDFC",
-  "Affle 3i Ltd":"AFFLE"
+  "Reliance Industries Ltd": { symbol: "RELIANCE", seed: 1545 },
+  "Tata Motors": { symbol: "TATAMOTORS", seed: 547 },
+  "Adani Green": { symbol: "ADANIGREEN", seed: 1191 },
+  "Wipro": { symbol: "WIPRO", seed: 339 },
+  "MRF": { symbol: "MRF", seed: 129231 },
+  "Reliance": { symbol: "RELIANCE", seed: 1648 },
+  "HDFC": { symbol: "HDFC", seed: 1382 },
+  "Affle 3i Ltd": { symbol: "AFFLE", seed: 110 }
 };
 
-const mutualFunds = [
+const funds = [
   "Edelweiss Nifty Midcap150 Momentum 50 Index Fund",
   "HDFC Mid Cap Fund",
   "HDFC Small Cap Fund",
@@ -24,267 +26,379 @@ const mutualFunds = [
   "SBI Large Cap Fund"
 ];
 
-/* simulated current prices */
+/* quick in-memory prices (can be replaced with API) */
 const currentPrices = {};
-Object.keys(stocks).forEach(name => currentPrices[name] = random(200,2000));
+for(const n in stocks) currentPrices[n] = +stocks[n].seed;
 
-/* persisted portfolio */
-let portfolio = JSON.parse(localStorage.getItem('ny_portfolio')) || { stocks:{}, funds:{} };
-function save(){ localStorage.setItem('ny_portfolio', JSON.stringify(portfolio)) }
+/* -------------------------
+   Portfolio (localStorage)
+   structure: { stocks:{name:{qty,avg}}, funds:{name:{units,avg}} }
+   -------------------------*/
+let portfolio = JSON.parse(localStorage.getItem('ny_portfolio') || '{}');
+if(!portfolio.stocks) portfolio = { stocks:{}, funds:{} };
 
-/* DOM refs */
-const stocksList = document.getElementById('stocksList');
-const fundsList  = document.getElementById('fundsList');
-const portfolioList = document.getElementById('portfolioList');
-const assetsTotalEl = document.getElementById('assetsTotal');
-const assetsPLEl = document.getElementById('assetsPL');
-const assetsCountEl = document.getElementById('assetsCount');
-
-const navStocks = document.getElementById('nav_stocks');
-const navFunds  = document.getElementById('nav_funds');
-const navPort   = document.getElementById('nav_portfolio');
-const stocksPanel = document.getElementById('ny_stocks_panel');
-const fundsPanel  = document.getElementById('ny_funds_panel');
-const portPanel   = document.getElementById('ny_portfolio_panel');
-
-let portfolioChart = null;
-
-/* small logo (initials) */
-function makeLogoFor(name){
-  const initials = name.split(' ').slice(0,2).map(s=>s[0]).join('').toUpperCase();
-  const div = document.createElement('div'); div.className='item-logo'; div.textContent = initials;
-  return div;
+function save(){
+  localStorage.setItem('ny_portfolio', JSON.stringify(portfolio));
+  renderSummary();
 }
 
-/* placeholder detail opener (replace with real modal later) */
-function openItemDetail(name, type){
-  // For now just show a toast. Later this opens your buy/sell/SIP modal.
-  showToast(`Open ${type} detail: ${name}`);
+/* -------------------------
+   Helpers
+   -------------------------*/
+function random(a,b){
+  return +(Math.random()*(b-a)+a).toFixed(2);
+}
+function formatINR(x){ return '₹' + Number(x).toLocaleString('en-IN', {maximumFractionDigits:2}); }
+
+/* Render summary */
+function renderSummary(){
+  const total = Object.entries(portfolio.stocks).reduce((s,[k,v]) => {
+    const price = currentPrices[k] || v.avg;
+    return s + price * v.qty;
+  }, 0) + Object.entries(portfolio.funds || {}).reduce((s,[k,v]) => {
+    const price = currentPrices[k] || v.avg || 1;
+    return s + price * v.units;
+  }, 0);
+  document.getElementById('totalAssets').textContent = formatINR(total || 0);
+  const holdings = Object.values(portfolio.stocks).reduce((s,r)=>s + (r.qty||0),0) + Object.values(portfolio.funds).reduce((s,r)=>s + (r.units||0),0);
+  document.getElementById('holdingsCount').textContent = holdings;
+  document.getElementById('oneDayChange').textContent = `+₹0 (0.00%)`;
 }
 
-/* Render stocks list (no buy button, no percent chip) */
+/* -------------------------
+   Render lists
+   -------------------------*/
+const listArea = document.getElementById('listArea');
+const pageTitle = document.getElementById('pageTitle');
+
 function renderStocks(){
-  stocksList.innerHTML = '';
-  Object.keys(stocks).forEach(name=>{
-    const sym = stocks[name];
-    const price = currentPrices[name] = currentPrices[name] || random(200,2000);
+  pageTitle.textContent = 'Buy Stocks';
+  listArea.innerHTML = '';
+  Object.keys(stocks).forEach(name => {
+    const item = document.createElement('div'); item.className='card';
+    item.dataset.name = name; item.dataset.type='stock';
+    item.onclick = ()=> openItemDetail(name,'stock');
 
-    const card = document.createElement('div'); card.className='list-item clickable';
-    card.dataset.name = name; card.dataset.type = 'stock';
-    card.onclick = ()=> openItemDetail(name,'stock');
-
-    const left = document.createElement('div'); left.className='item-left';
-    left.appendChild(makeLogoFor(name));
-    const meta = document.createElement('div'); meta.className='item-meta';
+    const left = document.createElement('div'); left.className='card-left';
+    const badge = document.createElement('div'); badge.className='badge-circle';
+    // initials
+    badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+    const info = document.createElement('div'); info.className='item-info';
     const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const badgeRow = document.createElement('div'); badgeRow.className='item-badge';
-    const badge = document.createElement('span'); badge.className='badge-chip'; badge.textContent = 'Stock';
-    const sib = document.createElement('span'); sib.style.color='var(--muted)'; sib.style.fontSize='12px'; sib.textContent = ` | ${sym}`;
-    badgeRow.appendChild(badge); badgeRow.appendChild(sib);
-    meta.appendChild(title); meta.appendChild(badgeRow);
-    left.appendChild(meta);
+    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `Stock | ${stocks[name].symbol || ''}`;
 
-    const rightBlock = document.createElement('div'); rightBlock.className='right-block';
-    const priceArea = document.createElement('div'); priceArea.style.textAlign='right';
-    const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${price}`;
-    priceArea.appendChild(priceEl);
+    info.appendChild(title); info.appendChild(sub);
+    left.appendChild(badge); left.appendChild(info);
 
-    /* previously we showed pct chip here. removed per request.
-       Owned-only arrow logic will be displayed in portfolio panel instead. */
+    const right = document.createElement('div'); right.className='card-right';
+    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name] || stocks[name].seed);
+    const arrowWrap = document.createElement('div'); arrowWrap.className='item-arrow';
+    // show arrow only if owned
+    const owned = portfolio.stocks[name];
+    if(owned){
+      const pl = ((currentPrices[name]||stocks[name].seed) - owned.avg) / owned.avg * 100;
+      const sym = pl >= 0 ? '▲' : '▼';
+      arrowWrap.textContent = `${sym} ${Math.abs(pl).toFixed(2)}%`;
+      arrowWrap.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
+    } else {
+      arrowWrap.textContent = '';
+    }
 
-    rightBlock.appendChild(priceArea);
-    card.appendChild(left); card.appendChild(rightBlock);
-    stocksList.appendChild(card);
+    right.appendChild(price); right.appendChild(arrowWrap);
+
+    item.appendChild(left); item.appendChild(right);
+    listArea.appendChild(item);
   });
 }
 
-/* Render funds list (no add button, no percent chip) */
 function renderFunds(){
-  fundsList.innerHTML = '';
-  mutualFunds.forEach(name=>{
-    const nav = random(50,350);
+  pageTitle.textContent = 'Mutual Funds';
+  listArea.innerHTML = '';
+  funds.forEach(name => {
+    const item = document.createElement('div'); item.className='card'; item.dataset.name = name; item.dataset.type='fund';
+    item.onclick = ()=> openItemDetail(name,'fund');
 
-    const card = document.createElement('div'); card.className='list-item clickable';
-    card.dataset.name = name; card.dataset.type = 'fund';
-    card.onclick = ()=> openItemDetail(name,'fund');
-
-    const left = document.createElement('div'); left.className='item-left';
-    left.appendChild(makeLogoFor(name));
-    const meta = document.createElement('div'); meta.className='item-meta';
+    const left = document.createElement('div'); left.className='card-left';
+    const badge = document.createElement('div'); badge.className='badge-circle';
+    badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+    const info = document.createElement('div'); info.className='item-info';
     const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const badgeRow = document.createElement('div'); badgeRow.className='item-badge';
-    const badge = document.createElement('span'); badge.className='badge-chip'; badge.textContent = 'Fund';
-    const sib = document.createElement('span'); sib.style.color='var(--muted)'; sib.style.fontSize='12px'; sib.textContent = ` | ${name.split(' ')[0].toUpperCase()}`;
-    badgeRow.appendChild(badge); badgeRow.appendChild(sib);
-    meta.appendChild(title); meta.appendChild(badgeRow);
-    left.appendChild(meta);
+    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `Fund`;
 
-    const rightBlock = document.createElement('div'); rightBlock.className='right-block';
-    const priceArea = document.createElement('div'); priceArea.style.textAlign='right';
-    const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${nav}`;
-    priceArea.appendChild(priceEl);
+    info.appendChild(title); info.appendChild(sub);
+    left.appendChild(badge); left.appendChild(info);
 
-    card.appendChild(left); card.appendChild(rightBlock);
-    rightBlock.appendChild(priceArea);
-    fundsList.appendChild(card);
+    const right = document.createElement('div'); right.className='card-right';
+    // synthetic units price
+    if(!currentPrices[name]) currentPrices[name] = random(80,350);
+    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name]);
+    const arrowWrap = document.createElement('div'); arrowWrap.className='item-arrow';
+    const owned = portfolio.funds[name];
+    if(owned){
+      const pl = ((currentPrices[name]) - owned.avg) / owned.avg * 100;
+      const sym = pl >= 0 ? '▲' : '▼';
+      arrowWrap.textContent = `${sym} ${Math.abs(pl).toFixed(2)}%`;
+      arrowWrap.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
+    } else { arrowWrap.textContent = ''; }
+
+    right.appendChild(price); right.appendChild(arrowWrap);
+
+    item.appendChild(left); item.appendChild(right);
+    listArea.appendChild(item);
   });
 }
 
-/* internal buy helpers (still kept, modal will call these later) */
-function buyStockDirect(name, qty, price){
-  if(qty<=0) return;
-  if(!portfolio.stocks[name]) portfolio.stocks[name] = { qty:0, price:0 };
-  const r = portfolio.stocks[name];
-  const totalExisting = r.qty * r.price;
-  const newQty = r.qty + qty;
-  const newTotal = totalExisting + qty * price;
-  r.qty = newQty; r.price = +(newTotal / newQty).toFixed(2);
-  save(); renderPortfolio(); renderStocks(); showToast(`${qty} × ${name} added`);
-}
-function buyFundDirect(name, units, nav){
-  if(units<=0) return;
-  if(!portfolio.funds[name]) portfolio.funds[name] = { units:0, price:0, nav };
-  const r = portfolio.funds[name];
-  const totalExisting = r.units * r.price;
-  const newUnits = r.units + units;
-  const newTotal = totalExisting + units * nav;
-  r.units = newUnits; r.price = +(newTotal / newUnits).toFixed(2); r.nav = nav;
-  save(); renderPortfolio(); renderFunds(); showToast(`${units} units of ${name} added`);
-}
-
-/* portfolio rendering — this shows owned items with arrows & pl info */
 function renderPortfolio(){
-  portfolioList.innerHTML = '';
-  let totalValue = 0, totalCost = 0;
-  const frag = document.createDocumentFragment();
+  pageTitle.textContent = 'Your Portfolio';
+  listArea.innerHTML = '';
+  // stocks first
+  const stockKeys = Object.keys(portfolio.stocks || {});
+  const fundKeys = Object.keys(portfolio.funds || {});
 
-  Object.entries(portfolio.stocks).forEach(([name,rec])=>{
-    const priceNow = currentPrices[name] || random(200,1200);
-    const value = +(priceNow * rec.qty);
-    const cost = +(rec.price * rec.qty);
-    totalValue += value; totalCost += cost;
-
-    const row = document.createElement('div'); row.className='port-row';
-    const left = document.createElement('div'); left.className='port-left';
-    const logo = makeLogoFor(name); logo.style.width='44px'; logo.style.height='44px';
-    left.appendChild(logo);
-    const meta = document.createElement('div'); meta.style.display='flex'; meta.style.flexDirection='column';
-    const title = document.createElement('div'); title.className='port-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='port-sub'; sub.textContent = `${rec.qty} qty @ ₹${rec.price.toFixed(2)}`;
-    meta.appendChild(title); meta.appendChild(sub);
-    left.appendChild(meta);
-
-    const right = document.createElement('div'); right.className='port-right';
-    right.innerHTML = `<div>₹${value.toFixed(2)}</div>`;
-    const diff = +(value - cost);
-    const arrow = document.createElement('span'); arrow.className='port-arrow'; arrow.textContent = diff >=0 ? '▲' : '▼';
-    arrow.style.color = diff >=0 ? 'var(--success)' : 'var(--danger)'; arrow.style.marginLeft='8px';
-    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`; pl.style.color = diff>=0 ? 'var(--success)':'var(--danger)';
-    right.appendChild(arrow); right.appendChild(pl);
-
-    row.appendChild(left); row.appendChild(right);
-    frag.appendChild(row);
-  });
-
-  Object.entries(portfolio.funds).forEach(([name,rec])=>{
-    const nav = rec.nav || random(60,300);
-    const value = +(nav * rec.units);
-    const cost = +(rec.price * rec.units);
-    totalValue += value; totalCost += cost;
-
-    const row = document.createElement('div'); row.className='port-row';
-    const left = document.createElement('div'); left.className='port-left';
-    const logo = makeLogoFor(name); logo.style.width='44px'; logo.style.height='44px';
-    left.appendChild(logo);
-    const meta = document.createElement('div'); meta.style.display='flex'; meta.style.flexDirection='column';
-    const title = document.createElement('div'); title.className='port-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='port-sub'; sub.textContent = `${rec.units} units @ ₹${rec.price.toFixed(2)}`;
-    meta.appendChild(title); meta.appendChild(sub);
-    left.appendChild(meta);
-
-    const right = document.createElement('div'); right.className='port-right';
-    right.innerHTML = `<div>₹${value.toFixed(2)}</div>`;
-    const diff = +(value - cost);
-    const arrow = document.createElement('span'); arrow.className='port-arrow'; arrow.textContent = diff >=0 ? '▲' : '▼';
-    arrow.style.color = diff >=0 ? 'var(--success)' : 'var(--danger)';
-    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`; pl.style.color = diff>=0 ? 'var(--success)':'var(--danger)';
-    right.appendChild(arrow); right.appendChild(pl);
-
-    row.appendChild(left); row.appendChild(right);
-    frag.appendChild(row);
-  });
-
-  if(!frag.children || frag.children.length === 0){
-    const e = document.createElement('div'); e.style.color='var(--muted)'; e.textContent='No holdings yet.'; portfolioList.appendChild(e);
-  }else{
-    portfolioList.appendChild(frag);
+  if(stockKeys.length === 0 && fundKeys.length === 0){
+    const empty = document.createElement('div'); empty.className='card'; empty.style.justifyContent='center';
+    empty.textContent = 'You have no holdings yet. Tap a stock or fund to add.';
+    listArea.appendChild(empty);
+    return;
   }
 
-  const plTotal = totalValue - totalCost;
-  assetsTotalEl.textContent = `₹${totalValue.toFixed(2)}`;
-  assetsPLEl.textContent = `${plTotal>=0?'+':'-'}₹${Math.abs(plTotal).toFixed(2)}`;
-  assetsPLEl.style.background = plTotal >= 0 ? 'rgba(46,204,113,0.12)' : 'rgba(231,76,60,0.12)';
-  assetsCountEl.textContent = `Holdings: ${Object.keys(portfolio.stocks).length + Object.keys(portfolio.funds).length}`;
+  stockKeys.forEach(name => {
+    const rec = portfolio.stocks[name];
+    const item = document.createElement('div'); item.className='card'; item.dataset.name=name; item.dataset.type='stock';
+    item.onclick = ()=> openItemDetail(name,'stock');
 
-  renderPortfolioChart(totalValue);
+    const left = document.createElement('div'); left.className='card-left';
+    const badge = document.createElement('div'); badge.className='badge-circle'; badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+    const info = document.createElement('div'); info.className='item-info';
+    const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
+    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `${rec.qty} shares • bought @ ${formatINR(rec.avg)}`;
+
+    info.appendChild(title); info.appendChild(sub);
+    left.appendChild(badge); left.appendChild(info);
+
+    const right = document.createElement('div'); right.className='card-right';
+    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name] || rec.avg);
+    const pl = ((currentPrices[name] || rec.avg) - rec.avg) * rec.qty;
+    const pct = (( (currentPrices[name]||rec.avg) - rec.avg) / rec.avg) * 100;
+    const arrow = document.createElement('div'); arrow.className='item-arrow';
+    arrow.textContent = `${pl>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
+    arrow.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
+
+    right.appendChild(price); right.appendChild(arrow);
+
+    item.appendChild(left); item.appendChild(right);
+    listArea.appendChild(item);
+  });
+
+  // funds
+  fundKeys.forEach(name=>{
+    const rec = portfolio.funds[name];
+    const item = document.createElement('div'); item.className='card'; item.dataset.name=name; item.dataset.type='fund';
+    item.onclick = ()=> openItemDetail(name,'fund');
+
+    const left = document.createElement('div'); left.className='card-left';
+    const badge = document.createElement('div'); badge.className='badge-circle'; badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+    const info = document.createElement('div'); info.className='item-info';
+    const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
+    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `${rec.units} units • bought @ ${formatINR(rec.avg)}`;
+
+    info.appendChild(title); info.appendChild(sub);
+    left.appendChild(badge); left.appendChild(info);
+
+    const right = document.createElement('div'); right.className='card-right';
+    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name]||rec.avg);
+    const pl = ((currentPrices[name]||rec.avg) - rec.avg) * rec.units;
+    const pct = (((currentPrices[name]||rec.avg) - rec.avg) / rec.avg) * 100;
+    const arrow = document.createElement('div'); arrow.className='item-arrow';
+    arrow.textContent = `${pl>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
+    arrow.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
+
+    right.appendChild(price); right.appendChild(arrow);
+
+    item.appendChild(left); item.appendChild(right);
+    listArea.appendChild(item);
+  });
 }
 
-/* 6 month chart */
-function renderPortfolioChart(totalValue){
-  const labels = [];
-  for(let i=5;i>=0;i--){
-    const d = new Date(); d.setMonth(d.getMonth()-i);
-    labels.push(d.toLocaleString('default', { month:'short' }));
+/* -------------------------
+   Navigation
+   -------------------------*/
+document.getElementById('navStocks').onclick = ()=> switchTab('stocks');
+document.getElementById('navFunds').onclick = ()=> switchTab('funds');
+document.getElementById('navPortfolio').onclick = ()=> switchTab('portfolio');
+
+function switchTab(tab){
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector(`.bottom-nav .nav-item[data-tab="${tab}"]`).classList.add('active');
+
+  if(tab==='stocks') renderStocks();
+  if(tab==='funds') renderFunds();
+  if(tab==='portfolio') renderPortfolio();
+}
+
+/* -------------------------
+   Detail modal + chart
+   -------------------------*/
+let detailChart = null;
+function openItemDetail(name, type){
+  const modal = document.getElementById('detailModal');
+  modal.classList.remove('hidden');
+  document.getElementById('detailName').textContent = name;
+  document.getElementById('detailSymbol').textContent = (type==='stock' && stocks[name]) ? stocks[name].symbol : 'FUND';
+  const priceNow = currentPrices[name] || (type==='stock' && stocks[name] ? stocks[name].seed : random(80,500));
+  const pct = +(random(-2,2)).toFixed(2);
+  const changeVal = +(priceNow * pct/100).toFixed(2);
+  document.getElementById('detailPrice').textContent = formatINR(priceNow);
+  const changeEl = document.getElementById('detailChange');
+  changeEl.textContent = `${changeVal>=0?'+':'-'}${formatINR(Math.abs(changeVal))} ${changeVal>=0?'▲':'▼'} ${Math.abs(pct)}%`;
+  changeEl.style.color = changeVal >= 0 ? 'var(--success)' : 'var(--danger)';
+
+  document.getElementById('statVolume').textContent = Math.floor(random(100000,5000000)).toLocaleString();
+  document.getElementById('statMcap').textContent = `₹${Math.floor(random(10000,200000)).toLocaleString()} Cr`;
+  document.getElementById('statLow').textContent = formatINR(Math.max(1, (priceNow - random(10,40)).toFixed(2)));
+  document.getElementById('statHigh').textContent = formatINR((priceNow + random(10,40)).toFixed(2));
+
+  // timeframe handlers
+  document.querySelectorAll('.timebar .tbtn').forEach(btn=>{
+    btn.classList.remove('active');
+    btn.onclick = ()=> {
+      document.querySelectorAll('.timebar .tbtn').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      renderDetailChart(name, type, btn.dataset.range);
+    };
+  });
+  document.querySelector('.timebar .tbtn[data-range="1D"]').classList.add('active');
+
+  renderDetailChart(name, type, '1D');
+
+  // actions
+  document.getElementById('actionPurchase').onclick = ()=> {
+    if(type==='stock'){
+      const qty = +prompt(`Purchase how many shares of ${name}?`, '1');
+      if(qty && qty>0) buyStockDirect(name, qty, priceNow);
+    } else {
+      const units = +prompt(`Purchase how many units of ${name}?`, '1');
+      if(units && units>0) buyFundDirect(name, units, priceNow);
+    }
+    closeDetail();
+  };
+  document.getElementById('actionSell').onclick = ()=> {
+    if(type==='stock'){
+      const rec = portfolio.stocks[name]; if(!rec) { alert("You don't own this stock"); return; }
+      const qty = +prompt(`Sell how many shares? (max ${rec.qty})`, '1');
+      if(qty && qty>0){
+        if(qty>=rec.qty) delete portfolio.stocks[name]; else rec.qty -= qty;
+        save(); renderPortfolio(); closeDetail();
+      }
+    } else {
+      const rec = portfolio.funds[name]; if(!rec) { alert("You don't own this fund"); return; }
+      const units = +prompt(`Redeem how many units? (max ${rec.units})`, '1');
+      if(units && units>0){
+        if(units>=rec.units) delete portfolio.funds[name]; else rec.units -= units;
+        save(); renderPortfolio(); closeDetail();
+      }
+    }
+  };
+  document.getElementById('actionSIP').onclick = ()=> {
+    alert('SIP flow placeholder — will implement full UI later.');
+  };
+
+  document.getElementById('closeDetail').onclick = closeDetail;
+  document.getElementById('detailBackdrop').onclick = closeDetail;
+}
+
+function closeDetail(){
+  const modal = document.getElementById('detailModal');
+  modal.classList.add('hidden');
+  if(detailChart){ detailChart.destroy(); detailChart=null; }
+}
+
+function renderDetailChart(name, type, range){
+  const canvas = document.getElementById('detailChart');
+  const ctx = canvas.getContext('2d');
+  if(detailChart) detailChart.destroy();
+
+  let points = 60;
+  switch(range){
+    case '1D': points = 50; break;
+    case '1W': points = 40; break;
+    case '1M': points = 80; break;
+    case '3M': points = 100; break;
+    case '6M': points = 140; break;
+    case '1Y': points = 200; break;
+    case '5Y': points = 260; break;
   }
-  let startVal = totalValue > 0 ? totalValue : 2000;
+
+  const start = currentPrices[name] || (stocks[name] ? stocks[name].seed : random(80,500));
+  const labels = new Array(points).fill(0).map((_,i)=>i);
   const data = [];
-  for(let i=0;i<labels.length;i++){
-    const v = +(startVal * (1 + (random(-0.06,0.06))).toFixed(2));
-    data.push(v);
-    startVal = v;
+  let val = start;
+  for(let i=0;i<points;i++){
+    const drift = (range==='1D' ? random(-2,2) : random(-8,8));
+    val = Math.max(1, +(val + drift).toFixed(2));
+    data.push(val);
   }
 
-  const wrap = document.getElementById('portfolioChartWrap');
-  wrap.innerHTML = '<canvas id="portfolioChart"></canvas>';
-  const ctx = document.getElementById('portfolioChart').getContext('2d');
-
-  if(portfolioChart) portfolioChart.destroy();
-  portfolioChart = new Chart(ctx, {
+  detailChart = new Chart(ctx, {
     type:'line',
-    data:{ labels, datasets:[{ label:'Portfolio', data, borderColor:'#2E8B7E', backgroundColor:'rgba(46,139,126,0.12)', fill:true, tension:0.3 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:'#9fb3b0'}}, y:{ticks:{color:'#9fb3b0'}} } }
+    data:{ labels, datasets:[{
+      data,
+      borderColor: 'rgba(46,204,113,0.95)',
+      backgroundColor: 'rgba(46,204,113,0.06)',
+      fill:true, pointRadius:0, tension:0.36
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ display:false },
+        y:{ grid:{ color:'rgba(255,255,255,0.02)'}, ticks:{ color: 'var(--muted)' } }
+      }
+    }
   });
-
-  const c = document.getElementById('portfolioChart');
-  c.style.width = '100%';
-  c.style.height = '260px';
+  canvas.style.width='100%'; canvas.style.height='260px';
 }
 
-/* navigation */
-navStocks.addEventListener('click', ()=> activateNav('stocks'));
-navFunds.addEventListener('click', ()=> activateNav('funds'));
-navPort.addEventListener('click', ()=> activateNav('portfolio'));
-function activateNav(tab){
-  navStocks.classList.remove('active'); navFunds.classList.remove('active'); navPort.classList.remove('active');
-  stocksPanel.style.display = 'none'; fundsPanel.style.display = 'none'; portPanel.style.display = 'none';
-  if(tab==='stocks'){ navStocks.classList.add('active'); stocksPanel.style.display='block' }
-  if(tab==='funds'){  navFunds.classList.add('active');  fundsPanel.style.display='block' }
-  if(tab==='portfolio'){ navPort.classList.add('active'); portPanel.style.display='block' }
+/* -------------------------
+   Buy/Sell helpers used by the detail modal
+   -------------------------*/
+function buyStockDirect(name, qty, price){
+  const rec = portfolio.stocks[name];
+  if(!rec){ portfolio.stocks[name] = { qty: qty, avg: price }; }
+  else {
+    const totalCost = rec.avg * rec.qty + price * qty;
+    const newQty = rec.qty + qty;
+    rec.avg = +(totalCost / newQty).toFixed(2);
+    rec.qty = newQty;
+  }
+  save(); renderPortfolio(); showToast(`Bought ${qty} × ${name}`);
 }
 
-/* toast */
-function showToast(txt){
-  const t = document.createElement('div'); t.textContent = txt;
-  Object.assign(t.style,{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:'120px',background:'rgba(0,0,0,0.75)',color:'#fff',padding:'8px 14px',borderRadius:'10px',zIndex:999});
-  document.body.appendChild(t); setTimeout(()=> t.remove(),1400);
+function buyFundDirect(name, units, price){
+  const rec = portfolio.funds[name];
+  if(!rec){ portfolio.funds[name] = { units: units, avg: price }; }
+  else {
+    const totalCost = rec.avg * rec.units + price * units;
+    const newUnits = rec.units + units;
+    rec.avg = +(totalCost / newUnits).toFixed(2);
+    rec.units = newUnits;
+  }
+  save(); renderPortfolio(); showToast(`Bought ${units} units of ${name}`);
 }
 
-/* init */
-function init(){
-  renderStocks(); renderFunds(); renderPortfolio();
-  activateNav('stocks');
+/* tiny toast */
+function showToast(msg){
+  const t = document.createElement('div'); t.textContent = msg;
+  t.style.position='fixed'; t.style.left='50%'; t.style.transform='translateX(-50%)'; t.style.bottom='120px';
+  t.style.background='rgba(0,0,0,0.7)'; t.style.color='#fff'; t.style.padding='10px 14px'; t.style.borderRadius='8px'; t.style.zIndex=2000;
+  document.body.appendChild(t); setTimeout(()=> t.remove(), 2000);
 }
-init();
 
-/* debug hook */
-window._ny = { portfolio, renderPortfolio, renderStocks, renderFunds, currentPrices, buyStockDirect, buyFundDirect };
+/* -------------------------
+   initial setup
+   -------------------------*/
+renderSummary();
+renderStocks(); // default tab
+
+// debug: expose to window for console tinkering
+window._ny = { portfolio, stocks, funds, currentPrices, save };
