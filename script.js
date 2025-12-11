@@ -1,404 +1,327 @@
-/* app logic for Stocks/Funds/Portfolio demo
-   - single-file app logic
-   - persistent portfolio via localStorage
-   - Chart.js for detail chart, synthetic test data
-*/
-
-/* -------------------------
-   Data
-   -------------------------*/
-const stocks = {
-  "Reliance Industries Ltd": { symbol: "RELIANCE", seed: 1545 },
-  "Tata Motors": { symbol: "TATAMOTORS", seed: 547 },
-  "Adani Green": { symbol: "ADANIGREEN", seed: 1191 },
-  "Wipro": { symbol: "WIPRO", seed: 339 },
-  "MRF": { symbol: "MRF", seed: 129231 },
-  "Reliance": { symbol: "RELIANCE", seed: 1648 },
-  "HDFC": { symbol: "HDFC", seed: 1382 },
-  "Affle 3i Ltd": { symbol: "AFFLE", seed: 110 }
-};
-
-const funds = [
-  "Edelweiss Nifty Midcap150 Momentum 50 Index Fund",
-  "HDFC Mid Cap Fund",
-  "HDFC Small Cap Fund",
-  "Nippon India Large Cap Fund",
-  "SBI Large Cap Fund"
+// ---------- Demo data ----------
+const stocks = [
+  { id: 'RELIANCE', name: 'Reliance Industries Ltd', price: 1545 },
+  { id: 'TATAMOTORS', name: 'Tata Motors', price: 547 },
+  { id: 'ADANIGREEN', name: 'Adani Green', price: 646 },
+  { id: 'WIPRO', name: 'Wipro', price: 574 },
+  { id: 'MRF', name: 'MRF', price: 41000 },
+  { id: 'HDFC', name: 'HDFC', price: 1174 },
 ];
 
-/* quick in-memory prices (can be replaced with API) */
-const currentPrices = {};
-for(const n in stocks) currentPrices[n] = +stocks[n].seed;
+const funds = [
+  { id: 'EDEL', name: 'Edelweiss Nifty Midcap150 Momentum 50 Index Fund', price: 182 },
+  { id: 'HDFC_MC', name: 'HDFC Mid Cap Fund', price: 230 },
+  { id: 'SBI_LC', name: 'SBI Large Cap Fund', price: 430 },
+];
 
-/* -------------------------
-   Portfolio (localStorage)
-   structure: { stocks:{name:{qty,avg}}, funds:{name:{units,avg}} }
-   -------------------------*/
-let portfolio = JSON.parse(localStorage.getItem('ny_portfolio') || '{}');
-if(!portfolio.stocks) portfolio = { stocks:{}, funds:{} };
+// ---------- local storage (simple portfolio) ----------
+function loadPortfolio() {
+  try { return JSON.parse(localStorage.getItem('ny_portfolio') || '[]') } catch (e) { return [] }
+}
+function savePortfolio(p) { localStorage.setItem('ny_portfolio', JSON.stringify(p)) }
+let portfolio = loadPortfolio(); // each item: {id, type:'stock'|'fund', qty, avgPrice}
 
-function save(){
-  localStorage.setItem('ny_portfolio', JSON.stringify(portfolio));
-  renderSummary();
+// ---------- utilities ----------
+function formatRs(n) {
+  const x = Math.round(n * 100) / 100;
+  return '₹' + x.toLocaleString('en-IN');
+}
+function pct(change, base) {
+  if (base === 0) return '0.00%';
+  return ((change / base) * 100).toFixed(2) + '%';
 }
 
-/* -------------------------
-   Helpers
-   -------------------------*/
-function random(a,b){
-  return +(Math.random()*(b-a)+a).toFixed(2);
+// ---------- DOM references ----------
+const listEl = document.getElementById('list');
+const totalValueEl = document.getElementById('totalValue');
+const holdingsCountEl = document.getElementById('holdingsCount');
+const dayChangeEl = document.getElementById('dayChange');
+
+const modal = document.getElementById('detailModal');
+const closeModalBtn = document.getElementById('closeModal');
+const detailName = document.getElementById('detailName');
+const detailType = document.getElementById('detailType');
+const detailPrice = document.getElementById('detailPrice');
+const detailChange = document.getElementById('detailChange');
+const detailSymbol = document.getElementById('detailSymbol');
+const rangeBtns = document.querySelectorAll('.range-btn');
+const actionBuy = document.getElementById('actionBuy');
+const actionSell = document.getElementById('actionSell');
+const actionSip = document.getElementById('actionSip');
+
+let currentDetail = null; // {id,type,meta}
+
+// ---------- simple dynamic price generator ----------
+function livePrice(base) {
+  // small random walk based on base
+  const noise = (Math.random() - 0.5) * Math.max(1, base * 0.02);
+  return Math.max(1, Math.round((base + noise) * 100) / 100);
 }
-function formatINR(x){ return '₹' + Number(x).toLocaleString('en-IN', {maximumFractionDigits:2}); }
 
-/* Render summary */
-function renderSummary(){
-  const total = Object.entries(portfolio.stocks).reduce((s,[k,v]) => {
-    const price = currentPrices[k] || v.avg;
-    return s + price * v.qty;
-  }, 0) + Object.entries(portfolio.funds || {}).reduce((s,[k,v]) => {
-    const price = currentPrices[k] || v.avg || 1;
-    return s + price * v.units;
-  }, 0);
-  document.getElementById('totalAssets').textContent = formatINR(total || 0);
-  const holdings = Object.values(portfolio.stocks).reduce((s,r)=>s + (r.qty||0),0) + Object.values(portfolio.funds).reduce((s,r)=>s + (r.units||0),0);
-  document.getElementById('holdingsCount').textContent = holdings;
-  document.getElementById('oneDayChange').textContent = `+₹0 (0.00%)`;
+// ---------- render list for a given tab ----------
+let currentTab = 'stocks';
+function renderList() {
+  listEl.innerHTML = '';
+  const dataset = currentTab === 'stocks' ? stocks : funds;
+  dataset.forEach(item => {
+    const isOwned = portfolio.some(p => p.id === item.id);
+    const current = livePrice(item.price);
+    const changePct = (Math.random() * 2 - 1).toFixed(2); // placeholder
+    const changeClass = changePct >= 0 ? 'success' : 'danger';
+
+    const card = document.createElement('div');
+    card.className = 'item';
+    card.innerHTML = `
+      <div class="item-left">
+        <div class="avatar">${item.id.slice(0,2)}</div>
+        <div class="meta">
+          <div class="name">${item.name}</div>
+          <div class="sub">Stock | ${item.id}</div>
+        </div>
+      </div>
+
+      <div class="price-area">
+        <div class="controls">
+          <input class="qty" value="1" type="number" min="1" />
+          ${isOwned ? '' : ''} <!-- buy button removed - click card opens modal -->
+        </div>
+        <div class="price">${formatRs(current)}</div>
+        <div class="change ${isOwned ? '' : 'muted'}">
+          ${isOwned ? (Math.random() > 0.5 ? '▲' : '▼') + ' ' + Math.abs(changePct) + '%' : ''}
+        </div>
+      </div>
+    `;
+
+    // clicking on whole card opens detail modal
+    card.addEventListener('click', (e) => {
+      // avoid clicking input causing modal (if clicking qty)
+      if (e.target.tagName.toLowerCase() === 'input') return;
+      openDetail(item, currentTab, current);
+    });
+
+    listEl.appendChild(card);
+  });
+  updateSummary();
 }
 
-/* -------------------------
-   Render lists
-   -------------------------*/
-const listArea = document.getElementById('listArea');
-const pageTitle = document.getElementById('pageTitle');
+// ---------- update top summary ----------
+function updateSummary() {
+  let total = 0;
+  let dayChange = 0;
+  portfolio.forEach(h => {
+    // find base price from data arrays
+    const meta = (h.type === 'stock' ? stocks : funds).find(s => s.id === h.id);
+    if (!meta) return;
+    const current = livePrice(meta.price);
+    total += current * h.qty;
+    // simple change from avg:
+    dayChange += (current - h.avgPrice) * h.qty;
+  });
+  totalValueEl.textContent = formatRs(total);
+  holdingsCountEl.textContent = `Holdings: ${portfolio.reduce((s,p)=>s+p.qty,0)}`;
+  const pctStr = total === 0 ? '(0.00%)' : `(${pct(dayChange, total)})`;
+  dayChangeEl.textContent = (dayChange >= 0 ? '＋' : '−') + formatRs(Math.abs(dayChange)) + ' ' + pctStr;
+  dayChangeEl.style.color = dayChange >= 0 ? 'var(--success)' : 'var(--danger)';
+}
 
-function renderStocks(){
-  pageTitle.textContent = 'Buy Stocks';
-  listArea.innerHTML = '';
-  Object.keys(stocks).forEach(name => {
-    const item = document.createElement('div'); item.className='card';
-    item.dataset.name = name; item.dataset.type='stock';
-    item.onclick = ()=> openItemDetail(name,'stock');
+// ---------- modal logic & chart ----------
+let chart = null;
+function openDetail(item, typeTab, currentPrice) {
+  currentDetail = {id:item.id, type: typeTab === 'stocks' ? 'stock' : 'fund', meta: item};
+  detailName.textContent = item.name;
+  detailType.textContent = (typeTab === 'stocks' ? 'Stock' : 'Fund') + ' | ' + item.id;
+  detailSymbol.textContent = item.id.slice(0,3);
+  detailPrice.textContent = formatRs(currentPrice);
 
-    const left = document.createElement('div'); left.className='card-left';
-    const badge = document.createElement('div'); badge.className='badge-circle';
-    // initials
-    badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
-    const info = document.createElement('div'); info.className='item-info';
-    const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `Stock | ${stocks[name].symbol || ''}`;
+  // is owned?
+  const owned = portfolio.find(p => p.id === item.id);
+  if (owned) {
+    const avg = owned.avgPrice;
+    const diff = currentPrice - avg;
+    detailChange.textContent = `${diff >= 0 ? '▲' : '▼'} ${pct(Math.abs(diff), avg)}`;
+    detailChange.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
+  } else {
+    detailChange.textContent = '';
+  }
 
-    info.appendChild(title); info.appendChild(sub);
-    left.appendChild(badge); left.appendChild(info);
+  // draw chart with sample data according to default 1D
+  drawChart(generateSeries(item.price, '1D'));
 
-    const right = document.createElement('div'); right.className='card-right';
-    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name] || stocks[name].seed);
-    const arrowWrap = document.createElement('div'); arrowWrap.className='item-arrow';
-    // show arrow only if owned
-    const owned = portfolio.stocks[name];
-    if(owned){
-      const pl = ((currentPrices[name]||stocks[name].seed) - owned.avg) / owned.avg * 100;
-      const sym = pl >= 0 ? '▲' : '▼';
-      arrowWrap.textContent = `${sym} ${Math.abs(pl).toFixed(2)}%`;
-      arrowWrap.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
-    } else {
-      arrowWrap.textContent = '';
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+// close modal
+closeModalBtn.addEventListener('click', ()=> {
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  currentDetail = null;
+});
+
+// range buttons
+rangeBtns.forEach(b=>{
+  b.addEventListener('click', ()=> {
+    rangeBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    if (!currentDetail) return;
+    const rng = b.dataset.range;
+    drawChart(generateSeries(currentDetail.meta.price, rng));
+  });
+});
+
+// generate mock series for chart (simple random-walk)
+function generateSeries(base, range) {
+  // number of points
+  const points = { '1D':48, '1W':28, '1M':30, '3M':45, '6M':60 }[range] || 30;
+  let vals = [];
+  let v = base;
+  for(let i=0;i<points;i++){
+    const step = (Math.random()-0.5) * Math.max(1, base * 0.02);
+    v = Math.max(1, v + step);
+    vals.push(Math.round(v*100)/100);
+  }
+  return vals;
+}
+
+function drawChart(data) {
+  const ctx = document.getElementById('historyChart').getContext('2d');
+  if (chart) chart.destroy();
+  const labels = data.map((_,i) => i);
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Price',
+        data,
+        borderColor: '#2ecc71',
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { display:false },
+        y: { 
+          ticks: { color: 'rgba(255,255,255,0.7)' }
+        }
+      },
+      plugins: {
+        legend: { display:false }
+      }
     }
-
-    right.appendChild(price); right.appendChild(arrowWrap);
-
-    item.appendChild(left); item.appendChild(right);
-    listArea.appendChild(item);
   });
+  // enforce canvas height so it doesn't stretch
+  document.getElementById('historyChart').style.height = '260px';
 }
 
-function renderFunds(){
-  pageTitle.textContent = 'Mutual Funds';
-  listArea.innerHTML = '';
-  funds.forEach(name => {
-    const item = document.createElement('div'); item.className='card'; item.dataset.name = name; item.dataset.type='fund';
-    item.onclick = ()=> openItemDetail(name,'fund');
+// ---------- actions: Buy / Sell / SIP (simple flows) ----------
+actionBuy.addEventListener('click', ()=> {
+  if (!currentDetail) return;
+  const qty = prompt('How many units to BUY?', '1');
+  const q = Math.max(1, parseInt(qty||'0')||1);
+  const meta = currentDetail.meta;
+  const priceNow = livePrice(meta.price);
+  // update portfolio
+  let entry = portfolio.find(p=>p.id===meta.id);
+  if (!entry) {
+    portfolio.push({ id: meta.id, type: currentDetail.type, qty: q, avgPrice: priceNow });
+  } else {
+    // new average price
+    const totalCost = entry.avgPrice * entry.qty + priceNow * q;
+    const newQty = entry.qty + q;
+    entry.avgPrice = Math.round((totalCost / newQty) * 100) / 100;
+    entry.qty = newQty;
+  }
+  savePortfolio(portfolio);
+  renderList();
+  updateSummary();
+  closeModalBtn.click();
+});
+actionSell.addEventListener('click', ()=> {
+  if (!currentDetail) return;
+  const meta = currentDetail.meta;
+  const entry = portfolio.find(p=>p.id===meta.id);
+  if (!entry) { alert('You do not own this asset'); return }
+  const qty = parseInt(prompt(`How many units to SELL? (You own ${entry.qty})`, '1')||'0') || 0;
+  if (qty <= 0) return;
+  if (qty >= entry.qty) {
+    // remove
+    portfolio = portfolio.filter(p=>p.id!==meta.id);
+  } else {
+    entry.qty -= qty;
+  }
+  savePortfolio(portfolio);
+  renderList();
+  updateSummary();
+  closeModalBtn.click();
+});
+actionSip.addEventListener('click', ()=> {
+  alert('SIP feature placeholder — will implement scheduled purchases (future).');
+});
 
-    const left = document.createElement('div'); left.className='card-left';
-    const badge = document.createElement('div'); badge.className='badge-circle';
-    badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
-    const info = document.createElement('div'); info.className='item-info';
-    const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `Fund`;
-
-    info.appendChild(title); info.appendChild(sub);
-    left.appendChild(badge); left.appendChild(info);
-
-    const right = document.createElement('div'); right.className='card-right';
-    // synthetic units price
-    if(!currentPrices[name]) currentPrices[name] = random(80,350);
-    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name]);
-    const arrowWrap = document.createElement('div'); arrowWrap.className='item-arrow';
-    const owned = portfolio.funds[name];
-    if(owned){
-      const pl = ((currentPrices[name]) - owned.avg) / owned.avg * 100;
-      const sym = pl >= 0 ? '▲' : '▼';
-      arrowWrap.textContent = `${sym} ${Math.abs(pl).toFixed(2)}%`;
-      arrowWrap.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
-    } else { arrowWrap.textContent = ''; }
-
-    right.appendChild(price); right.appendChild(arrowWrap);
-
-    item.appendChild(left); item.appendChild(right);
-    listArea.appendChild(item);
+// ---------- tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    // change page title
+    document.querySelector('.page-title').textContent = currentTab === 'stocks' ? 'Buy Stocks' :
+                                                       currentTab === 'funds' ? 'Buy Funds' : 'Your Portfolio';
+    // render content
+    if (currentTab === 'portfolio') {
+      renderPortfolioView();
+    } else {
+      renderList();
+    }
   });
-}
+});
 
-function renderPortfolio(){
-  pageTitle.textContent = 'Your Portfolio';
-  listArea.innerHTML = '';
-  // stocks first
-  const stockKeys = Object.keys(portfolio.stocks || {});
-  const fundKeys = Object.keys(portfolio.funds || {});
-
-  if(stockKeys.length === 0 && fundKeys.length === 0){
-    const empty = document.createElement('div'); empty.className='card'; empty.style.justifyContent='center';
-    empty.textContent = 'You have no holdings yet. Tap a stock or fund to add.';
-    listArea.appendChild(empty);
+// ---------- portfolio view ----------
+function renderPortfolioView(){
+  listEl.innerHTML = '';
+  if (portfolio.length === 0) {
+    listEl.innerHTML = '<div class="muted" style="padding:30px 10px">No holdings yet — buy any stock or fund to see it here.</div>';
     return;
   }
-
-  stockKeys.forEach(name => {
-    const rec = portfolio.stocks[name];
-    const item = document.createElement('div'); item.className='card'; item.dataset.name=name; item.dataset.type='stock';
-    item.onclick = ()=> openItemDetail(name,'stock');
-
-    const left = document.createElement('div'); left.className='card-left';
-    const badge = document.createElement('div'); badge.className='badge-circle'; badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
-    const info = document.createElement('div'); info.className='item-info';
-    const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `${rec.qty} shares • bought @ ${formatINR(rec.avg)}`;
-
-    info.appendChild(title); info.appendChild(sub);
-    left.appendChild(badge); left.appendChild(info);
-
-    const right = document.createElement('div'); right.className='card-right';
-    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name] || rec.avg);
-    const pl = ((currentPrices[name] || rec.avg) - rec.avg) * rec.qty;
-    const pct = (( (currentPrices[name]||rec.avg) - rec.avg) / rec.avg) * 100;
-    const arrow = document.createElement('div'); arrow.className='item-arrow';
-    arrow.textContent = `${pl>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
-    arrow.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
-
-    right.appendChild(price); right.appendChild(arrow);
-
-    item.appendChild(left); item.appendChild(right);
-    listArea.appendChild(item);
-  });
-
-  // funds
-  fundKeys.forEach(name=>{
-    const rec = portfolio.funds[name];
-    const item = document.createElement('div'); item.className='card'; item.dataset.name=name; item.dataset.type='fund';
-    item.onclick = ()=> openItemDetail(name,'fund');
-
-    const left = document.createElement('div'); left.className='card-left';
-    const badge = document.createElement('div'); badge.className='badge-circle'; badge.textContent = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
-    const info = document.createElement('div'); info.className='item-info';
-    const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `${rec.units} units • bought @ ${formatINR(rec.avg)}`;
-
-    info.appendChild(title); info.appendChild(sub);
-    left.appendChild(badge); left.appendChild(info);
-
-    const right = document.createElement('div'); right.className='card-right';
-    const price = document.createElement('div'); price.className='item-price'; price.textContent = formatINR(currentPrices[name]||rec.avg);
-    const pl = ((currentPrices[name]||rec.avg) - rec.avg) * rec.units;
-    const pct = (((currentPrices[name]||rec.avg) - rec.avg) / rec.avg) * 100;
-    const arrow = document.createElement('div'); arrow.className='item-arrow';
-    arrow.textContent = `${pl>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
-    arrow.style.color = pl >= 0 ? 'var(--success)' : 'var(--danger)';
-
-    right.appendChild(price); right.appendChild(arrow);
-
-    item.appendChild(left); item.appendChild(right);
-    listArea.appendChild(item);
+  portfolio.forEach(h => {
+    const meta = (h.type === 'stock' ? stocks : funds).find(x => x.id === h.id);
+    const cur = livePrice(meta.price);
+    const pnl = Math.round((cur - h.avgPrice) * h.qty * 100) / 100;
+    const pctMove = pct(cur - h.avgPrice, h.avgPrice);
+    const card = document.createElement('div');
+    card.className = 'item';
+    card.innerHTML = `
+      <div class="item-left">
+        <div class="avatar">${meta.id.slice(0,2)}</div>
+        <div class="meta">
+          <div class="name">${meta.name}</div>
+          <div class="sub">${h.type === 'stock' ? 'Stock' : 'Fund'} | ${meta.id}</div>
+          <div class="sub">Qty: ${h.qty} • Avg: ${formatRs(h.avgPrice)}</div>
+        </div>
+      </div>
+      <div class="price-area">
+        <div class="price">${formatRs(cur)}</div>
+        <div class="change" style="color:${pnl>=0 ? 'var(--success)' : 'var(--danger)'}">
+          ${pnl>=0 ? '▲' : '▼'} ${Math.abs(pctMove)}
+        </div>
+      </div>
+    `;
+    card.addEventListener('click', ()=> openDetail(meta, h.type === 'stock' ? 'stocks' : 'funds', cur));
+    listEl.appendChild(card);
   });
 }
 
-/* -------------------------
-   Navigation
-   -------------------------*/
-document.getElementById('navStocks').onclick = ()=> switchTab('stocks');
-document.getElementById('navFunds').onclick = ()=> switchTab('funds');
-document.getElementById('navPortfolio').onclick = ()=> switchTab('portfolio');
+// ---------- initial render ----------
+renderList();
+updateSummary();
 
-function switchTab(tab){
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(n=>n.classList.remove('active'));
-  document.querySelector(`.bottom-nav .nav-item[data-tab="${tab}"]`).classList.add('active');
-
-  if(tab==='stocks') renderStocks();
-  if(tab==='funds') renderFunds();
-  if(tab==='portfolio') renderPortfolio();
-}
-
-/* -------------------------
-   Detail modal + chart
-   -------------------------*/
-let detailChart = null;
-function openItemDetail(name, type){
-  const modal = document.getElementById('detailModal');
-  modal.classList.remove('hidden');
-  document.getElementById('detailName').textContent = name;
-  document.getElementById('detailSymbol').textContent = (type==='stock' && stocks[name]) ? stocks[name].symbol : 'FUND';
-  const priceNow = currentPrices[name] || (type==='stock' && stocks[name] ? stocks[name].seed : random(80,500));
-  const pct = +(random(-2,2)).toFixed(2);
-  const changeVal = +(priceNow * pct/100).toFixed(2);
-  document.getElementById('detailPrice').textContent = formatINR(priceNow);
-  const changeEl = document.getElementById('detailChange');
-  changeEl.textContent = `${changeVal>=0?'+':'-'}${formatINR(Math.abs(changeVal))} ${changeVal>=0?'▲':'▼'} ${Math.abs(pct)}%`;
-  changeEl.style.color = changeVal >= 0 ? 'var(--success)' : 'var(--danger)';
-
-  document.getElementById('statVolume').textContent = Math.floor(random(100000,5000000)).toLocaleString();
-  document.getElementById('statMcap').textContent = `₹${Math.floor(random(10000,200000)).toLocaleString()} Cr`;
-  document.getElementById('statLow').textContent = formatINR(Math.max(1, (priceNow - random(10,40)).toFixed(2)));
-  document.getElementById('statHigh').textContent = formatINR((priceNow + random(10,40)).toFixed(2));
-
-  // timeframe handlers
-  document.querySelectorAll('.timebar .tbtn').forEach(btn=>{
-    btn.classList.remove('active');
-    btn.onclick = ()=> {
-      document.querySelectorAll('.timebar .tbtn').forEach(x=>x.classList.remove('active'));
-      btn.classList.add('active');
-      renderDetailChart(name, type, btn.dataset.range);
-    };
-  });
-  document.querySelector('.timebar .tbtn[data-range="1D"]').classList.add('active');
-
-  renderDetailChart(name, type, '1D');
-
-  // actions
-  document.getElementById('actionPurchase').onclick = ()=> {
-    if(type==='stock'){
-      const qty = +prompt(`Purchase how many shares of ${name}?`, '1');
-      if(qty && qty>0) buyStockDirect(name, qty, priceNow);
-    } else {
-      const units = +prompt(`Purchase how many units of ${name}?`, '1');
-      if(units && units>0) buyFundDirect(name, units, priceNow);
-    }
-    closeDetail();
-  };
-  document.getElementById('actionSell').onclick = ()=> {
-    if(type==='stock'){
-      const rec = portfolio.stocks[name]; if(!rec) { alert("You don't own this stock"); return; }
-      const qty = +prompt(`Sell how many shares? (max ${rec.qty})`, '1');
-      if(qty && qty>0){
-        if(qty>=rec.qty) delete portfolio.stocks[name]; else rec.qty -= qty;
-        save(); renderPortfolio(); closeDetail();
-      }
-    } else {
-      const rec = portfolio.funds[name]; if(!rec) { alert("You don't own this fund"); return; }
-      const units = +prompt(`Redeem how many units? (max ${rec.units})`, '1');
-      if(units && units>0){
-        if(units>=rec.units) delete portfolio.funds[name]; else rec.units -= units;
-        save(); renderPortfolio(); closeDetail();
-      }
-    }
-  };
-  document.getElementById('actionSIP').onclick = ()=> {
-    alert('SIP flow placeholder — will implement full UI later.');
-  };
-
-  document.getElementById('closeDetail').onclick = closeDetail;
-  document.getElementById('detailBackdrop').onclick = closeDetail;
-}
-
-function closeDetail(){
-  const modal = document.getElementById('detailModal');
-  modal.classList.add('hidden');
-  if(detailChart){ detailChart.destroy(); detailChart=null; }
-}
-
-function renderDetailChart(name, type, range){
-  const canvas = document.getElementById('detailChart');
-  const ctx = canvas.getContext('2d');
-  if(detailChart) detailChart.destroy();
-
-  let points = 60;
-  switch(range){
-    case '1D': points = 50; break;
-    case '1W': points = 40; break;
-    case '1M': points = 80; break;
-    case '3M': points = 100; break;
-    case '6M': points = 140; break;
-    case '1Y': points = 200; break;
-    case '5Y': points = 260; break;
-  }
-
-  const start = currentPrices[name] || (stocks[name] ? stocks[name].seed : random(80,500));
-  const labels = new Array(points).fill(0).map((_,i)=>i);
-  const data = [];
-  let val = start;
-  for(let i=0;i<points;i++){
-    const drift = (range==='1D' ? random(-2,2) : random(-8,8));
-    val = Math.max(1, +(val + drift).toFixed(2));
-    data.push(val);
-  }
-
-  detailChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[{
-      data,
-      borderColor: 'rgba(46,204,113,0.95)',
-      backgroundColor: 'rgba(46,204,113,0.06)',
-      fill:true, pointRadius:0, tension:0.36
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{ display:false },
-        y:{ grid:{ color:'rgba(255,255,255,0.02)'}, ticks:{ color: 'var(--muted)' } }
-      }
-    }
-  });
-  canvas.style.width='100%'; canvas.style.height='260px';
-}
-
-/* -------------------------
-   Buy/Sell helpers used by the detail modal
-   -------------------------*/
-function buyStockDirect(name, qty, price){
-  const rec = portfolio.stocks[name];
-  if(!rec){ portfolio.stocks[name] = { qty: qty, avg: price }; }
-  else {
-    const totalCost = rec.avg * rec.qty + price * qty;
-    const newQty = rec.qty + qty;
-    rec.avg = +(totalCost / newQty).toFixed(2);
-    rec.qty = newQty;
-  }
-  save(); renderPortfolio(); showToast(`Bought ${qty} × ${name}`);
-}
-
-function buyFundDirect(name, units, price){
-  const rec = portfolio.funds[name];
-  if(!rec){ portfolio.funds[name] = { units: units, avg: price }; }
-  else {
-    const totalCost = rec.avg * rec.units + price * units;
-    const newUnits = rec.units + units;
-    rec.avg = +(totalCost / newUnits).toFixed(2);
-    rec.units = newUnits;
-  }
-  save(); renderPortfolio(); showToast(`Bought ${units} units of ${name}`);
-}
-
-/* tiny toast */
-function showToast(msg){
-  const t = document.createElement('div'); t.textContent = msg;
-  t.style.position='fixed'; t.style.left='50%'; t.style.transform='translateX(-50%)'; t.style.bottom='120px';
-  t.style.background='rgba(0,0,0,0.7)'; t.style.color='#fff'; t.style.padding='10px 14px'; t.style.borderRadius='8px'; t.style.zIndex=2000;
-  document.body.appendChild(t); setTimeout(()=> t.remove(), 2000);
-}
-
-/* -------------------------
-   initial setup
-   -------------------------*/
-renderSummary();
-renderStocks(); // default tab
-
-// debug: expose to window for console tinkering
-window._ny = { portfolio, stocks, funds, currentPrices, save };
+// periodically update (simulate live)
+setInterval(()=>{
+  renderList();
+  updateSummary();
+}, 6000);
