@@ -1,3 +1,4 @@
+// script.js
 // ensure code runs after DOM ready
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -103,6 +104,9 @@ document.addEventListener('DOMContentLoaded', function () {
     return `${sign}₹${abs.toLocaleString(undefined,{maximumFractionDigits:2})}`;
   }
 
+  let chartInstance = null; // Chart.js instance
+
+  // ------------------- portfolio render and chart -------------------
   function renderPortfolio(){
     portfolioList.innerHTML = ''; detailArea.innerHTML = '';
 
@@ -131,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div style="font-weight:800">Total: ₹${total.toLocaleString(undefined,{maximumFractionDigits:2})}</div>
       <div style="color:var(--muted)">Invested: ₹${invested.toLocaleString(undefined,{maximumFractionDigits:2})} • Cash: ₹${cash.toLocaleString(undefined,{maximumFractionDigits:2})}</div>
       <div style="margin-top:8px">${formatPL(plAmount)} • ${plPct>=0?'+':''}${plPct.toFixed(2)}%</div>
+      <div style="margin-top:10px"><button id="showChartBtn" class="btn ghost">Show 6-Month Chart</button></div>
     `;
 
     if(Object.keys(portfolio.stocks).length === 0 && Object.keys(portfolio.funds).length === 0){
@@ -174,6 +179,14 @@ document.addEventListener('DOMContentLoaded', function () {
         portfolioList.appendChild(card);
       }
     }
+
+    // attach handler for show chart button
+    const showBtn = document.getElementById('showChartBtn');
+    if(showBtn) showBtn.addEventListener('click', ()=> {
+      renderPortfolioHistoryChart();
+      // scroll detail area into view
+      detailArea.scrollIntoView({behavior:'smooth', block:'center'});
+    });
   }
 
   // ------------------- actions (delegated listeners) -------------------
@@ -228,14 +241,193 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if(detailsBtn){
       const name = detailsBtn.dataset.name;
       showDetails(name);
+      // also render 6m chart focused on this holding
+      renderHoldingHistoryChart(name);
     }
   });
 
   function showDetails(name){
     detailArea.innerHTML = '';
     const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px">${name} — simulated 30d</h4><div style="height:140px;display:flex;align-items:center;justify-content:center;color:var(--muted)">Chart placeholder</div></div>`;
+    card.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px">${name} — details & 6-month</h4><canvas id="historyChart" style="width:100%;height:220px"></canvas></div>`;
     detailArea.appendChild(card);
+  }
+
+  // ------------------- HISTORY / CHART logic -------------------
+  // generate a 6-point (monthly) history array going backwards using a mild random walk
+  function genHistoryForPrice(currentPrice){
+    // 6 months: produce array of length 6 (older -> newer)
+    const points = [];
+    // start from older months: create a value around current price but with drift
+    // we'll simulate by starting at currentPrice and walking backwards
+    let val = currentPrice;
+    // produce recent to older by inverting iteration
+    for(let i=0;i<6;i++){
+      // random small change between -6% and +6%
+      const change = (Math.random()*12 - 6)/100;
+      // move val back one month
+      val = +(val / (1 + change));
+      points.unshift(+val.toFixed(2)); // put older at index 0
+    }
+    // ensure last point equals currentPrice (most recent)
+    points[points.length-1] = +currentPrice.toFixed(2);
+    return points;
+  }
+
+  // build series for each holding (value series = price series * qty/units)
+  function buildHoldingsSeries(){
+    const series = {};
+    // for stocks
+    for(const s in portfolio.stocks){
+      const qty = portfolio.stocks[s].qty || 0;
+      const curPrice = +(stocks[s]||0);
+      const priceSeries = genHistoryForPrice(curPrice); // 6 prices
+      series[s] = priceSeries.map(p => +(p * qty).toFixed(2));
+    }
+    // for funds
+    for(const f in portfolio.funds){
+      const units = portfolio.funds[f].units || 0;
+      const curPrice = +(funds[f]||0);
+      const priceSeries = genHistoryForPrice(curPrice);
+      series[f] = priceSeries.map(p => +(p * units).toFixed(2));
+    }
+    return series;
+  }
+
+  // create labels for last 6 months (short)
+  function last6MonthsLabels(){
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+    const labels = [];
+    for(let i=5;i>=0;i--){
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      labels.push(months[d.getMonth()] + ' ' + String(d.getFullYear()).slice(-2));
+    }
+    return labels;
+  }
+
+  // render chart of portfolio history (all holdings + total)
+  function renderPortfolioHistoryChart(){
+    // clear detail area and add canvas
+    detailArea.innerHTML = '';
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px">Portfolio — Last 6 months</h4><canvas id="historyChart" style="width:100%;height:260px"></canvas></div>`;
+    detailArea.appendChild(card);
+
+    const ctx = document.getElementById('historyChart').getContext('2d');
+    if(window.Chart === undefined){
+      showToast('Chart.js not loaded');
+      return;
+    }
+
+    // prepare data
+    const holdingsSeries = buildHoldingsSeries();
+    const labels = last6MonthsLabels();
+    const datasets = [];
+    const colors = [
+      '#18a999','#2f7ecf','#e76f51','#8d99ae','#f4a261','#7b2cbf','#06d6a0','#00b4d8'
+    ];
+    let idx = 0;
+    const totalSeries = Array(6).fill(0);
+    for(const name in holdingsSeries){
+      const data = holdingsSeries[name];
+      data.forEach((v,i)=> totalSeries[i] += v);
+      datasets.push({
+        label: name,
+        data,
+        borderColor: colors[idx % colors.length],
+        backgroundColor: 'transparent',
+        tension: 0.35,
+        borderWidth: 1.5,
+        pointRadius: 2
+      });
+      idx++;
+    }
+
+    // add total line as prominent
+    datasets.push({
+      label: 'Total',
+      data: totalSeries,
+      borderColor: '#ffffff',
+      backgroundColor: 'transparent',
+      tension: 0.3,
+      borderWidth: 3.5,
+      pointRadius: 3
+    });
+
+    // destroy previous chart if exists
+    if(chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        plugins: { legend: { position: 'bottom', labels: { boxWidth:10, boxHeight:6 } } },
+        scales: {
+          y: { ticks: { callback: v => '₹' + Number(v).toLocaleString() } },
+          x: { grid: { display:false } }
+        },
+        maintainAspectRatio: false,
+        interaction: { mode:'index', intersect:false }
+      }
+    });
+  }
+
+  // render chart for single holding when its Details clicked
+  function renderHoldingHistoryChart(name){
+    // show details block for the holding if not present
+    detailArea.innerHTML = '';
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px">${name} — Last 6 months</h4><canvas id="historyChart" style="width:100%;height:260px"></canvas></div>`;
+    detailArea.appendChild(card);
+
+    const ctx = document.getElementById('historyChart').getContext('2d');
+    if(window.Chart === undefined){
+      showToast('Chart.js not loaded');
+      return;
+    }
+
+    // generate history for this single holding
+    const isStock = !!portfolio.stocks[name];
+    const qtyOrUnits = isStock ? (portfolio.stocks[name].qty||0) : (portfolio.funds[name].units||0);
+    const curPrice = isStock ? +(stocks[name]||0) : +(funds[name]||0);
+
+    const priceSeries = genHistoryForPrice(curPrice);
+    const valueSeries = priceSeries.map(p => +(p * qtyOrUnits).toFixed(2));
+    const labels = last6MonthsLabels();
+
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {
+            label: name + ' value',
+            data: valueSeries,
+            borderColor:'#18a999',
+            backgroundColor:'transparent',
+            tension:0.35,
+            borderWidth:2.5
+          },
+          {
+            label: 'Current value (dotted)',
+            data: valueSeries.map(v => v),
+            borderColor:'#ffffff',
+            borderDash:[6,6],
+            backgroundColor:'transparent',
+            tension:0.35,
+            borderWidth:1.2,
+            pointRadius:0
+          }
+        ]
+      },
+      options:{
+        plugins:{legend:{position:'bottom'}},
+        scales:{ y:{ ticks: {callback:v=>'₹'+Number(v).toLocaleString() } } },
+        maintainAspectRatio:false
+      }
+    });
   }
 
   // ------------------- small utilities -------------------
