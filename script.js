@@ -1,19 +1,16 @@
-/* ---------- helper ---------- */
+/* small helpers */
 function random(a,b){ return +(Math.random()*(b-a)+a).toFixed(2) }
 
-/* ---------- data ---------- */
+/* sample data (symbol map) */
 const stocks = {
-  "Reliance Industries Ltd":"RELIANCE",
   "Tata Motors":"TATAMOTORS",
   "Adani Green":"ADANIGREEN",
   "Wipro":"WIPRO",
   "MRF":"MRF",
+  "Reliance":"RELIANCE",
   "HDFC":"HDFC",
   "Affle 3i Ltd":"AFFLE"
 };
-
-const currentPrices = {};
-Object.keys(stocks).forEach((name)=> currentPrices[name] = random(200, 2000) );
 
 const mutualFunds = [
   "Edelweiss Nifty Midcap150 Momentum 50 Index Fund",
@@ -23,11 +20,15 @@ const mutualFunds = [
   "SBI Large Cap Fund"
 ];
 
-/* ---------- persistence ---------- */
-let portfolio = JSON.parse(localStorage.getItem('ny_portfolio')) || { stocks: {}, funds: {} };
+/* current prices (simulate) */
+const currentPrices = {};
+Object.keys(stocks).forEach(name => currentPrices[name] = random(200,2000));
+
+/* persisted portfolio */
+let portfolio = JSON.parse(localStorage.getItem('ny_portfolio')) || { stocks:{}, funds:{} };
 function save(){ localStorage.setItem('ny_portfolio', JSON.stringify(portfolio)) }
 
-/* ---------- DOM ---------- */
+/* cached DOM */
 const stocksList = document.getElementById('stocksList');
 const fundsList  = document.getElementById('fundsList');
 const portfolioList = document.getElementById('portfolioList');
@@ -44,116 +45,120 @@ const portPanel   = document.getElementById('ny_portfolio_panel');
 
 let portfolioChart = null;
 
-/* ---------- UI helpers ---------- */
+/* tiny logo generator (initials) */
 function makeLogoFor(name){
   const initials = name.split(' ').slice(0,2).map(s=>s[0]).join('').toUpperCase();
-  const el = document.createElement('div'); el.className='item-logo'; el.textContent = initials;
-  return el;
+  const div = document.createElement('div'); div.className='item-logo'; div.textContent = initials;
+  return div;
 }
 
-/* ---------- render stocks as separate cards ---------- */
+/* Render a single stock row that matches your mock */
 function renderStocks(){
   stocksList.innerHTML = '';
   Object.keys(stocks).forEach(name=>{
     const sym = stocks[name];
-    const price = currentPrices[name] = currentPrices[name] || random(200, 2000);
+    const price = currentPrices[name] = currentPrices[name] || random(200,2000);
     const pct = random(-2.5,2.5);
 
-    const wrapper = document.createElement('div'); wrapper.className='list-item';
+    const card = document.createElement('div'); card.className='list-item';
 
     const left = document.createElement('div'); left.className='item-left';
     left.appendChild(makeLogoFor(name));
+
     const meta = document.createElement('div'); meta.className='item-meta';
     const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `Stock | ${sym}`;
-    meta.appendChild(title); meta.appendChild(sub);
+    const badgeRow = document.createElement('div'); badgeRow.className='item-badge';
+    const badge = document.createElement('span'); badge.className='badge-chip'; badge.textContent = 'Stock';
+    const sib = document.createElement('span'); sib.style.color='var(--muted)'; sib.style.fontSize='12px'; sib.textContent = ` | ${sym}`;
+    badgeRow.appendChild(badge); badgeRow.appendChild(sib);
+
+    meta.appendChild(title); meta.appendChild(badgeRow);
     left.appendChild(meta);
 
     const rightBlock = document.createElement('div'); rightBlock.className='right-block';
 
-    // controls
-    const ctr = document.createElement('div'); ctr.className='controls';
+    const controls = document.createElement('div'); controls.className='controls';
     const qty = document.createElement('input'); qty.type='number'; qty.min=1; qty.value=1; qty.className='qty';
-    const btn = document.createElement('button'); btn.className='btn-buy'; btn.textContent='Buy';
-    btn.onclick = ()=> buyStock(name, Number(qty.value), price);
-    ctr.appendChild(qty); ctr.appendChild(btn);
+    const buy = document.createElement('button'); buy.className='btn-buy'; buy.textContent='Buy';
+    buy.onclick = ()=> buyStock(name, Number(qty.value), price);
+    controls.appendChild(qty); controls.appendChild(buy);
 
-    // price area
-    const right = document.createElement('div'); right.className='item-right';
+    const priceArea = document.createElement('div'); priceArea.style.textAlign='right';
     const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${price}`;
-    const change = document.createElement('div'); change.className='item-change ' + (pct>=0? 'change-up':'change-down');
-    change.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
-    right.appendChild(priceEl); right.appendChild(change);
+    const pctEl = document.createElement('div'); pctEl.className='pct-chip ' + (pct>=0? 'pct-up':'pct-down');
+    pctEl.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
+    priceArea.appendChild(priceEl); priceArea.appendChild(pctEl);
 
-    rightBlock.appendChild(ctr); rightBlock.appendChild(right);
+    rightBlock.appendChild(controls);
+    rightBlock.appendChild(priceArea);
 
-    wrapper.appendChild(left); wrapper.appendChild(rightBlock);
-    stocksList.appendChild(wrapper);
+    card.appendChild(left);
+    card.appendChild(rightBlock);
+    stocksList.appendChild(card);
   });
 }
 
-/* ---------- render funds as cards ---------- */
+/* Render funds — similar layout with 'Fund' badge */
 function renderFunds(){
   fundsList.innerHTML = '';
   mutualFunds.forEach(name=>{
     const nav = random(50,350);
-    const pct = random(-1.5, 1.5);
-    const wrapper = document.createElement('div'); wrapper.className='list-item';
+    const pct = random(-1.5,1.5);
 
+    const card = document.createElement('div'); card.className='list-item';
     const left = document.createElement('div'); left.className='item-left';
     left.appendChild(makeLogoFor(name));
     const meta = document.createElement('div'); meta.className='item-meta';
     const title = document.createElement('div'); title.className='item-title'; title.textContent = name;
-    const sub = document.createElement('div'); sub.className='item-sub'; sub.textContent = `Fund | ${name.split(' ')[0].toUpperCase()}`;
-    meta.appendChild(title); meta.appendChild(sub);
+    const badgeRow = document.createElement('div'); badgeRow.className='item-badge';
+    const badge = document.createElement('span'); badge.className='badge-chip'; badge.textContent = 'Fund';
+    const sib = document.createElement('span'); sib.style.color='var(--muted)'; sib.style.fontSize='12px'; sib.textContent = ` | ${name.split(' ')[0].toUpperCase()}`;
+    badgeRow.appendChild(badge); badgeRow.appendChild(sib);
+    meta.appendChild(title); meta.appendChild(badgeRow);
     left.appendChild(meta);
 
     const rightBlock = document.createElement('div'); rightBlock.className='right-block';
-    const ctr = document.createElement('div'); ctr.className='controls';
+    const controls = document.createElement('div'); controls.className='controls';
     const qty = document.createElement('input'); qty.type='number'; qty.min=1; qty.value=1; qty.className='qty';
-    const btn = document.createElement('button'); btn.className='btn-buy'; btn.textContent='Add';
-    btn.onclick = ()=> buyFund(name, Number(qty.value), nav);
-    ctr.appendChild(qty); ctr.appendChild(btn);
+    const add = document.createElement('button'); add.className='btn-buy'; add.textContent='Add';
+    add.onclick = ()=> buyFund(name, Number(qty.value), nav);
+    controls.appendChild(qty); controls.appendChild(add);
 
-    const right = document.createElement('div'); right.className='item-right';
+    const priceArea = document.createElement('div'); priceArea.style.textAlign='right';
     const priceEl = document.createElement('div'); priceEl.className='item-price'; priceEl.textContent = `₹${nav}`;
-    const change = document.createElement('div'); change.className='item-change ' + (pct>=0? 'change-up':'change-down');
-    change.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
-    right.appendChild(priceEl); right.appendChild(change);
+    const pctEl = document.createElement('div'); pctEl.className='pct-chip ' + (pct>=0? 'pct-up':'pct-down');
+    pctEl.textContent = `${pct>=0? '▲':'▼'} ${Math.abs(pct).toFixed(2)}%`;
+    priceArea.appendChild(priceEl); priceArea.appendChild(pctEl);
 
-    rightBlock.appendChild(ctr); rightBlock.appendChild(right);
-    wrapper.appendChild(left); wrapper.appendChild(rightBlock);
-    fundsList.appendChild(wrapper);
+    rightBlock.appendChild(controls); rightBlock.appendChild(priceArea);
+    card.appendChild(left); card.appendChild(rightBlock);
+    fundsList.appendChild(card);
   });
 }
 
-/* ---------- purchase logic ---------- */
+/* buy handlers (averaging) */
 function buyStock(name, qty, price){
-  if(qty <= 0) return;
+  if(qty<=0) return;
   if(!portfolio.stocks[name]) portfolio.stocks[name] = { qty:0, price:0 };
-  const rec = portfolio.stocks[name];
-  const totalExisting = rec.qty * rec.price;
-  const newQty = rec.qty + qty;
+  const r = portfolio.stocks[name];
+  const totalExisting = r.qty * r.price;
+  const newQty = r.qty + qty;
   const newTotal = totalExisting + qty * price;
-  rec.qty = newQty;
-  rec.price = +(newTotal / newQty).toFixed(2);
+  r.qty = newQty; r.price = +(newTotal / newQty).toFixed(2);
   save(); renderPortfolio(); renderStocks(); showToast(`${qty} × ${name} added`);
 }
-
 function buyFund(name, units, nav){
-  if(units <= 0) return;
+  if(units<=0) return;
   if(!portfolio.funds[name]) portfolio.funds[name] = { units:0, price:0, nav };
-  const rec = portfolio.funds[name];
-  const totalExisting = rec.units * rec.price;
-  const newUnits = rec.units + units;
+  const r = portfolio.funds[name];
+  const totalExisting = r.units * r.price;
+  const newUnits = r.units + units;
   const newTotal = totalExisting + units * nav;
-  rec.units = newUnits;
-  rec.price = +(newTotal / newUnits).toFixed(2);
-  rec.nav = nav;
+  r.units = newUnits; r.price = +(newTotal / newUnits).toFixed(2); r.nav = nav;
   save(); renderPortfolio(); renderFunds(); showToast(`${units} units of ${name} added`);
 }
 
-/* ---------- portfolio render & arrow indicator ---------- */
+/* portfolio rendering with up/down arrow per holding */
 function renderPortfolio(){
   portfolioList.innerHTML = '';
   let totalValue = 0, totalCost = 0;
@@ -178,11 +183,9 @@ function renderPortfolio(){
     const right = document.createElement('div'); right.className='port-right';
     right.innerHTML = `<div>₹${value.toFixed(2)}</div>`;
     const diff = +(value - cost);
-    const arrow = document.createElement('span'); arrow.className='port-arrow';
-    arrow.textContent = diff >= 0 ? '▲' : '▼';
-    arrow.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
-    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`;
-    pl.style.color = diff>=0? 'var(--success)': 'var(--danger)';
+    const arrow = document.createElement('span'); arrow.className='port-arrow'; arrow.textContent = diff >=0 ? '▲' : '▼';
+    arrow.style.color = diff >=0 ? 'var(--success)' : 'var(--danger)';
+    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`; pl.style.color = diff>=0 ? 'var(--success)':'var(--danger)';
     right.appendChild(arrow); right.appendChild(pl);
 
     row.appendChild(left); row.appendChild(right);
@@ -208,11 +211,9 @@ function renderPortfolio(){
     const right = document.createElement('div'); right.className='port-right';
     right.innerHTML = `<div>₹${value.toFixed(2)}</div>`;
     const diff = +(value - cost);
-    const arrow = document.createElement('span'); arrow.className='port-arrow';
-    arrow.textContent = diff >= 0 ? '▲' : '▼';
-    arrow.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
-    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`;
-    pl.style.color = diff>=0? 'var(--success)': 'var(--danger)';
+    const arrow = document.createElement('span'); arrow.className='port-arrow'; arrow.textContent = diff >=0 ? '▲' : '▼';
+    arrow.style.color = diff >=0 ? 'var(--success)' : 'var(--danger)';
+    const pl = document.createElement('div'); pl.textContent = `${diff>=0?'+':'-'}₹${Math.abs(diff).toFixed(2)}`; pl.style.color = diff>=0 ? 'var(--success)':'var(--danger)';
     right.appendChild(arrow); right.appendChild(pl);
 
     row.appendChild(left); row.appendChild(right);
@@ -221,7 +222,7 @@ function renderPortfolio(){
 
   if(!frag.children || frag.children.length === 0){
     const e = document.createElement('div'); e.style.color='var(--muted)'; e.textContent='No holdings yet.'; portfolioList.appendChild(e);
-  } else {
+  }else{
     portfolioList.appendChild(frag);
   }
 
@@ -234,7 +235,7 @@ function renderPortfolio(){
   renderPortfolioChart(totalValue);
 }
 
-/* ---------- chart (6 month) ---------- */
+/* Chart: 6 month */
 function renderPortfolioChart(totalValue){
   const labels = [];
   for(let i=5;i>=0;i--){
@@ -244,7 +245,6 @@ function renderPortfolioChart(totalValue){
   let startVal = totalValue > 0 ? totalValue : 2000;
   const data = [];
   for(let i=0;i<labels.length;i++){
-    // simulate gently varying series
     const v = +(startVal * (1 + (random(-0.06,0.06))).toFixed(2));
     data.push(v);
     startVal = v;
@@ -266,11 +266,10 @@ function renderPortfolioChart(totalValue){
   c.style.height = '260px';
 }
 
-/* ---------- navigation ---------- */
+/* navigation */
 navStocks.addEventListener('click', ()=> activateNav('stocks'));
 navFunds.addEventListener('click', ()=> activateNav('funds'));
 navPort.addEventListener('click', ()=> activateNav('portfolio'));
-
 function activateNav(tab){
   navStocks.classList.remove('active'); navFunds.classList.remove('active'); navPort.classList.remove('active');
   stocksPanel.style.display = 'none'; fundsPanel.style.display = 'none'; portPanel.style.display = 'none';
@@ -279,14 +278,14 @@ function activateNav(tab){
   if(tab==='portfolio'){ navPort.classList.add('active'); portPanel.style.display='block' }
 }
 
-/* ---------- toast ---------- */
+/* toast */
 function showToast(txt){
   const t = document.createElement('div'); t.textContent = txt;
   Object.assign(t.style,{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:'120px',background:'rgba(0,0,0,0.75)',padding:'8px 14px',borderRadius:'10px',zIndex:999});
   document.body.appendChild(t); setTimeout(()=> t.remove(),1400);
 }
 
-/* ---------- init ---------- */
+/* init */
 function init(){
   renderStocks(); renderFunds(); renderPortfolio();
   activateNav('stocks');
