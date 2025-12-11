@@ -6,54 +6,65 @@
   <title>Nivesh Yatra — Brokerage Demo</title>
 
   <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <!-- Local stylesheet -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Chart.js (CDN) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="brand">
-      <div class="logo">📈</div>
-      <div>
+      <img src="https://raw.githubusercontent.com/sonicese420-afk/Nevesh-Yatra-/main/logo-placeholder.png" alt="logo" class="logo">
+      <div class="brand-text">
         <div class="company-name">Nivesh Yatra</div>
         <div class="slogan">Turning dreams into Assets.</div>
       </div>
     </div>
   </header>
 
-  <nav class="tabs">
-    <button id="tabStocks" class="tab active">Stocks</button>
-    <button id="tabMF" class="tab">Mutual Funds</button>
-    <button id="tabPortfolio" class="tab">Portfolio</button>
-  </nav>
-
   <main class="container">
     <!-- Stocks -->
     <section id="stocksTab" class="panel">
-      <h2>Buy Stocks</h2>
+      <h2 class="heading">Buy Stocks</h2>
       <div id="stockList" class="list"></div>
     </section>
 
     <!-- Mutual funds -->
     <section id="mfTab" class="panel hidden">
-      <h2>Mutual Funds</h2>
+      <h2 class="heading">Mutual Funds</h2>
       <div id="mfList" class="list"></div>
     </section>
 
     <!-- Portfolio -->
     <section id="portfolioTab" class="panel hidden">
-      <h2>Your Portfolio</h2>
+      <h2 class="heading">Your Portfolio</h2>
       <div id="portfolioSummary" class="summary"></div>
       <div id="portfolioList" class="list"></div>
       <div id="details"></div>
     </section>
   </main>
 
-  <!-- App script -->
+  <!-- Bottom navigation -->
+  <nav class="bottom-nav" role="navigation" aria-label="Main">
+    <button id="navStocks" class="nav-btn active" aria-label="Stocks">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 14l-5-5-4 7-4-4-3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Stocks</span>
+    </button>
+
+    <button id="navMF" class="nav-btn" aria-label="Mutual Funds">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M5 21c2-4 6-6 7-6s5 2 7 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Funds</span>
+    </button>
+
+    <button id="navPortfolio" class="nav-btn" aria-label="Portfolio">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Portfolio</span>
+    </button>
+  </nav>
+
   <script src="script.js"></script>
 </body>
 </html>
