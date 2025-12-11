@@ -1,206 +1,89 @@
-/* style.css - Clean responsive styles for Nivesh Yatra demo */
-/* Colors & variables */
+/* style.css - refreshed for stable charts and crisp bottom nav */
 :root{
   --accent: #2f5873;
-  --muted: #6b7785;
-  --bg: #071017;            /* app background (dark) */
-  --surface: #0b1820;       /* card background */
-  --glass: rgba(255,255,255,0.04);
+  --accent-2: #1abc9c;
+  --bg: #071017;
+  --surface: #07171b;
   --card: rgba(255,255,255,0.03);
+  --muted-text: rgba(230,243,246,0.68);
+  --text: #e6f3f6;
   --success: #2ecc71;
   --danger: #e74c3c;
-  --accent-2: #1abc9c;
-  --nav-bg: rgba(7,20,24,0.78);
-  --text: #e6f3f6;
-  --muted-text: rgba(230,243,246,0.7);
 }
 
-/* Global reset & layout */
+/* Reset */
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased}
+html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
 a{color:inherit}
 
-/* --- Header (logo top-left) --- */
+/* Header (logo top-left) */
 #ny_header{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:14px 16px;
-  background: linear-gradient(180deg,var(--accent), #2e6b6f);
-  position:sticky;
-  top:0;
-  z-index:80;
-  box-shadow:0 6px 18px rgba(6,18,24,0.5);
+  display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(180deg,var(--accent),#2e6b6f);position:sticky;top:0;z-index:80;
+  box-shadow:0 6px 18px rgba(0,0,0,0.5)
 }
-#ny_header img#ny_logo_img{
-  width:56px;
-  height:56px;
-  border-radius:12px;
-  object-fit:cover;
-  background:rgba(255,255,255,0.03);
-  box-shadow:0 6px 18px rgba(0,0,0,0.35) inset;
-}
-#ny_header > div{line-height:1}
+#ny_logo_img{width:56px;height:56px;border-radius:12px;object-fit:cover;background:rgba(255,255,255,0.03)}
 #ny_header .brand-title{font-weight:700;font-size:18px}
 #ny_header .brand-sub{font-size:12px;color:var(--muted-text)}
 
-/* --- Assets box below header --- */
-#ny_assets_box{
-  margin:12px 16px 0 16px;
-  padding:14px;
-  background:var(--card);
-  border-radius:12px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.5);
-}
-#ny_assets_box #assetsTotal{font-size:26px;font-weight:800}
-#ny_assets_box #dailyChange,#ny_assets_box #assetsCount{opacity:.9;margin-top:6px;color:var(--muted-text);font-size:14px}
+/* Assets summary card */
+#ny_assets_box{margin:12px 16px;padding:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.6)}
+#assetsTotal{font-size:26px;font-weight:800}
+#assetsPL{font-weight:600;margin-top:6px}
+#assetsCount{color:var(--muted-text);margin-top:6px}
 
-/* --- Main content area (gives room for bottom nav) --- */
-#ny_main{
-  padding:12px 16px 110px; /* bottom padding leaves space for bottom nav */
-  min-height:60vh;
-}
+/* Main content area */
+#ny_main{padding:12px 16px 120px;min-height:60vh}
 
-/* --- Cards (stocks/funds/portfolio entries) --- */
-.ny-card{
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-radius:12px;
-  padding:14px;
-  margin-bottom:12px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.6);
-  color:var(--text);
-  transition:transform .12s ease, box-shadow .12s ease;
-}
-.ny-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,0.6)}
-
-/* Small name / price area inside card */
+/* Cards */
+.ny-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,0.6)}
 .ny-card .name{font-weight:700;font-size:16px}
 .ny-card .price{font-size:18px;margin-top:8px;font-weight:700;color:var(--text)}
 .ny-card .meta{font-size:13px;color:var(--muted-text);margin-top:6px}
 
-/* Buttons */
-.ny-card .buy-btn,
-.ny-card .add-btn,
-.ny-card button.buy,
-.ny-card button.add{
-  border:none;
-  padding:9px 12px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-}
-.ny-card button.buy{background:var(--accent-2); color:#fff}
-.ny-card button.add{background:#2f8cff;color:#fff}
+/* Inputs & buttons */
+.ny-card input.qty{width:72px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--text)}
+.ny-card button.buy-btn, .ny-card button.add-btn{border:none;padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+.ny-card button.buy-btn{background:var(--accent-2);color:#fff}
+.ny-card button.add-btn{background:#2f8cff;color:#fff}
 
-/* numeric input */
-.ny-card input.qty{
-  width:72px;
-  padding:8px;
-  border-radius:10px;
-  border:1px solid rgba(255,255,255,0.06);
-  background:rgba(255,255,255,0.02);
-  color:var(--text);
-  outline:none;
-}
+/* Bottom nav (crisp, no blur) */
+.ny-bottom-nav{position:fixed;left:12px;right:12px;bottom:16px;display:flex;justify-content:space-between;gap:12px;padding:8px 12px;background:rgba(7,20,24,0.9);border-radius:32px;align-items:center;z-index:120;box-shadow:0 12px 30px rgba(0,0,0,0.6)}
+.ny-nav-btn{min-width:90px;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--text);background:transparent;border-radius:12px;padding:10px 14px;border:1px solid rgba(255,255,255,0.03);cursor:pointer;opacity:.98}
+.ny-nav-btn.active{background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06)}
 
-/* --- Bottom navigation (fixed) --- */
-.ny-bottom-nav{
-  position:fixed;
-  left:12px;
-  right:12px;
-  bottom:16px;
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  padding:8px 12px;
-  background: linear-gradient(180deg, rgba(7,20,24,0.65), rgba(7,20,24,0.85));
-  border-radius:32px;
-  align-items:center;
-  z-index:120;
-  box-shadow:0 12px 30px rgba(0,0,0,0.6);
-}
-.ny-nav-btn{
-  min-width:90px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  color:var(--text);
-  background:transparent;
-  border-radius:12px;
-  padding:10px 14px;
-  border:1px solid rgba(255,255,255,0.03);
-  cursor:pointer;
-  opacity:.95;
-}
-.ny-nav-btn.active{
-  background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-  border:1px solid rgba(255,255,255,0.06);
-  box-shadow:0 6px 18px rgba(0,0,0,0.6) inset;
-}
+/* Remove accidental backdrop blur and make icons crisp */
+.ny-bottom-nav, .ny-nav-btn{backdrop-filter:none; -webkit-backdrop-filter:none}
 
-/* --- Modal & Chart sizing fixes (prevents stretching) --- */
-#ny_modal{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:140;
-  pointer-events:none;
-}
-#ny_modal .ny-modal-content{
-  width:92%;
-  max-width:900px;
-  max-height:80vh;
-  overflow:auto;
-  background:var(--surface);
-  border-radius:12px;
-  padding:12px;
-  pointer-events:auto;
-  box-shadow:0 20px 60px rgba(0,0,0,0.7);
-}
-
-/* Force a sane height for canvas elements used by Charts to avoid stretching */
-#ny_modal canvas,
-#ny_portfolio_chart,
-canvas#ny_detail_chart,
-canvas#ny_portfolio_chart{
+/* Chart / modal sizing fixes to prevent stretching */
+#ny_modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:140;pointer-events:none}
+#ny_modal .ny-modal-content{width:92%;max-width:900px;max-height:80vh;overflow:auto;background:var(--surface);border-radius:12px;padding:12px;pointer-events:auto;box-shadow:0 20px 60px rgba(0,0,0,0.7)}
+/* Force canvas sizes so Chart.js doesn't stretch them */
+#ny_modal canvas, #ny_portfolio_chart, canvas#ny_detail_chart {
   width:100% !important;
-  height:260px !important; /* fixed height helpful on mobiles */
+  height:260px !important;
   display:block;
   object-fit:contain;
 }
-
-/* also make any canvas inside cards scale well */
+/* Also cap card canvas */
 .ny-card canvas{max-width:100%;height:200px !important}
 
-/* --- Portfolio header styles --- */
-#ny_portfolio_panel h2,
-#ny_stocks_panel h2,
-#ny_funds_panel h2{font-size:28px;margin:6px 0 12px}
+/* Portfolio list header */
+#ny_portfolio_panel h2, #ny_stocks_panel h2, #ny_funds_panel h2{font-size:28px;margin:6px 0 12px}
 
-/* --- small helpers for positive/negative --- */
+/* Positive/Negative */
 .positive{color:var(--success)}
 .negative{color:var(--danger)}
 
-/* --- Responsive tweaks --- */
+/* Responsive tweaks */
 @media (min-width:768px){
   #ny_main{padding-left:32px;padding-right:32px}
   .ny-card{padding:18px}
   .ny-nav-btn{min-width:120px}
   #ny_header img#ny_logo_img{width:64px;height:64px}
-  #ny_assets_box{margin-left:32px;margin-right:32px}
 }
 
-/* Prevent bottom nav from overlaying last content by ensuring main has enough bottom padding */
-/* (script sets #ny_main padding but keep fallback) */
+/* Leave space for bottom nav if script can't set it */
 body:not(.no-bottom-nav) #ny_main{padding-bottom:120px}
 
-/* Safety: if some other nav overlaps, this forces it below (z-order) */
-#ny_modal{z-index:9999}
-
-/* Accessibility / small touches */
+/* Focus outlines */
 button:focus, input:focus{outline:2px solid rgba(255,255,255,0.06);outline-offset:2px}
-
-/* End of style.css */
