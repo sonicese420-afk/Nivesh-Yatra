@@ -1,48 +1,140 @@
 :root{
-  --accent:#2f8573; --muted:#6b7785; --text:#e7f4f1; --bg:#071319; --card:#07121a; --radius:14px;
-  font-family:Inter,system-ui,Roboto,Arial;
+  --bg:#08121a;
+  --card:#0f1a1e;
+  --muted:#93a4a4;
+  --accent:#2f8f7a;
+  --glass: rgba(255,255,255,0.03);
+  --white: #ffffff;
 }
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#041018 0%,#021118 70%);color:var(--text)}
-.site-header{display:flex;align-items:center;justify-content:space-between;padding:16px;background:linear-gradient(90deg,var(--accent),#3a8f82)}
-.brand{display:flex;gap:12px;align-items:center}
-.logo{width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center}
-.brand-text .company-name{font-weight:700;font-size:18px}
-.brand-text .slogan{font-size:12px;opacity:.85}
-.header-actions{display:flex;gap:8px}
-main{padding:18px 16px;padding-bottom:120px}
-.summary-card{display:flex;justify-content:space-between;padding:18px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 30px rgba(0,0,0,0.45)}
-.muted{color:rgba(200,220,215,0.7)}
-.big{font-weight:700;font-size:28px}
-.pill{background:rgba(46,204,113,0.08);color:#2ecc71;padding:8px 12px;border-radius:999px;font-weight:700}
-.content-area h1{font-size:28px;margin:20px 0}
-.list{display:flex;flex-direction:column;gap:12px}
-.card{display:flex;align-items:center;justify-content:space-between;padding:14px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));box-shadow:0 6px 18px rgba(0,0,0,0.6)}
-.card-left{display:flex;gap:12px;align-items:center}
-.avatar{width:52px;height:52px;border-radius:40px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:700}
-.card-title{font-weight:700}
-.card-sub{font-size:12px;color:rgba(190,205,200,0.8)}
-.card-price{font-weight:700;font-size:18px}
-.card-pct{margin-top:6px;padding:6px 10px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
-.pct-up{background:rgba(46,204,113,0.09);color:#2ecc71}
-.pct-down{background:rgba(231,76,60,0.07);color:#e74c3c}
-.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:50}
-.nav-pill{background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.7));padding:10px 12px;border-radius:40px;display:flex;gap:12px}
-.tab{background:transparent;border:0;color:var(--text);padding:10px 16px;border-radius:30px;font-weight:700;cursor:pointer}
-.tab.active{background:rgba(255,255,255,0.03)}
-.modal{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.9));display:flex;align-items:flex-start;justify-content:center;padding:30px}
-.modal.hidden{display:none}
-.modal-body{width:96%;max-width:980px;color:var(--text)}
-.close{background:transparent;border:0;color:var(--text);font-size:20px;cursor:pointer}
-.detail-header{display:flex;justify-content:space-between;align-items:center}
-.detail-name{font-weight:700;font-size:18px}
-.chart-card{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));padding:8px;border-radius:12px;margin-top:10px}
-.chart-card canvas{width:100% !important;height:260px !important}
-.range{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px;color:var(--text);cursor:pointer;margin:6px}
-.range.active{background:rgba(255,255,255,0.03)}
-.trade-area{display:flex;gap:10px;align-items:center;margin-top:12px}
-.trade-area input{padding:8px;border-radius:10px;border:0;background:rgba(255,255,255,0.02);color:var(--text);width:100px}
-.btn{padding:8px 12px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
-.btn.buy{background:var(--accent);color:white}
-.btn.sell{background:#e74c3c;color:white}
-.btn.sip{background:#2ecc71;color:white}
+
+/* Reset basics */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont,"Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,var(--bg), #071018); color:var(--white);}
+
+/* Header */
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:40;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(90deg, rgba(47,143,122,0.95), rgba(30,110,95,0.95));
+  padding:12px 18px;
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+.header-inner{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  max-width:1100px;
+  margin:0 auto;
+}
+.logo{
+  width:56px;
+  height:56px;
+  border-radius:12px;
+  object-fit:cover;
+  box-shadow:0 10px 30px rgba(0,0,0,0.6);
+  background:var(--glass);
+}
+.brand-text{ line-height:1; margin-left:4px; }
+.brand-title{ font-weight:700; font-size:18px; color: #e8f7f2; }
+.brand-sub{ font-size:12px; color: rgba(255,255,255,0.85); opacity:0.9; }
+
+/* header actions right */
+.header-actions{ margin-left:auto; display:flex; gap:10px; align-items:center; }
+.header-actions button{ background:rgba(255,255,255,0.06); border:none; padding:8px 10px; border-radius:8px; color:var(--white); }
+
+/* main content container */
+main#main{ max-width:1100px; margin:12px auto 96px; padding:0 18px; }
+
+/* summary card */
+.summary-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:14px;
+  padding:18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+.summary-left .label{ color:var(--muted); font-size:12px; }
+.summary-left .amount{ font-size:28px; font-weight:800; margin-top:6px; color:var(--white); }
+.summary-left .holdings{ color:var(--muted); font-size:14px; margin-top:4px; }
+.summary-right{ margin-left:auto; }
+.change-pill{ background: rgba(47,143,122,0.12); color:var(--accent); padding:8px 12px; border-radius:24px; font-weight:600; }
+
+/* section title */
+.section-title{ font-size:28px; margin:22px 8px; font-weight:800; }
+
+/* cards grid & card styling */
+.cards-grid{ display:block; gap:14px; }
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:14px 18px;
+  margin-bottom:12px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+.avatar{
+  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);font-weight:700;color:#dbeee9;
+}
+.card .meta{ flex:1; }
+.card .title{ font-weight:700; font-size:16px; }
+.card .sub{ color:var(--muted); font-size:12px; margin-top:4px;}
+.card .right{ text-align:right; min-width:110px; }
+.card .price{ font-weight:800; font-size:18px; }
+
+/* bottom navigation */
+.bottom-nav{
+  position:fixed; left:50%; transform:translateX(-50%);
+  bottom:18px; z-index:50;
+  background: rgba(0,0,0,0.6); padding:12px 18px; border-radius:28px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6); display:flex; gap:18px; align-items:center;
+}
+.bottom-nav .tab{ background:transparent; border:none; color:var(--white); padding:8px 12px; border-radius:16px; font-weight:700; opacity:0.9; }
+.bottom-nav .tab.active{ background:rgba(255,255,255,0.06); }
+
+/* modal */
+.modal.hidden{ display:none; }
+.modal{ position:fixed; inset:0; z-index:90; display:flex; align-items:flex-end; justify-content:center; }
+.modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,0.6); }
+.modal-content{ position:relative; width:100%; max-width:900px; background: linear-gradient(180deg,#07121a,#0b1a1f); border-radius:16px 16px 0 0; padding:18px; box-shadow:0 -10px 50px rgba(0,0,0,0.7); }
+
+/* detail header + chart */
+.detail-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.detail-name{ font-weight:800; font-size:18px; }
+.detail-type{ color:var(--muted); font-size:13px; margin-top:6px; }
+.detail-price{ text-align:right; }
+.detail-price .detail-pct{ margin-top:6px; color:var(--accent); font-weight:700; }
+
+/* chart area */
+.chart-wrap{ margin-top:16px; border-radius:12px; padding:10px; background: rgba(255,255,255,0.02); }
+.ranges{ display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
+.range{ background:transparent; border:1px solid rgba(255,255,255,0.03); padding:6px 8px; border-radius:8px; color:var(--muted); }
+.range.active{ background:rgba(255,255,255,0.04); color:var(--white); }
+
+/* trade area */
+.trade-area{ margin-top:12px; display:flex; gap:10px; align-items:center; }
+.trade-area label{ color:var(--muted); font-size:13px; }
+.trade-area input{ padding:8px 10px; border-radius:8px; background:rgba(255,255,255,0.03); border:none; color:var(--white); width:100px; }
+.trade-buttons{ display:flex; gap:8px; margin-left:auto; }
+.trade-buttons button{ padding:10px 14px; border-radius:12px; border:none; font-weight:700; }
+.trade-buttons .sell{ background:#9c2f2f; color:#fff; }
+.trade-buttons .buy{ background:var(--accent); color:#fff; }
+.trade-buttons .sip{ background:#2f8f7a; color:#fff; }
+
+/* responsive tweaks */
+@media (max-width:600px){
+  .brand-title{ font-size:16px; }
+  .brand-sub{ font-size:11px; }
+  .logo{ width:48px; height:48px; }
+  .section-title{ font-size:22px; margin:18px 8px;}
+  .card .title{ font-size:15px; }
+  .card .price{ font-size:16px; }
+  .modal-content{ padding-bottom:34px; }
+  }
