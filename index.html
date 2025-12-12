@@ -3,96 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nivesh Yatra</title>
+  <title>Nivesh Yatra - Demo</title>
 
-  <!-- Chart.js for details modal -->
+  <!-- Chart.js CDN (used for charts) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- App styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="site-header">
+  <!-- Header: logo left, brand center, icons right -->
+  <header class="site-header" role="banner">
     <div class="header-inner">
-      <img src="logo.png" alt="logo" class="logo" />
-      <div class="brand-text">
+      <div class="left-area">
+        <img src="logo.png" alt="Nivesh Yatra logo" class="logo" />
+      </div>
+
+      <div class="center-area">
         <div class="brand-title">Nivesh Yatra</div>
         <div class="brand-sub">Turning dreams into Assets.</div>
       </div>
 
-      <div class="header-actions">
-        <button id="toggleVisibility" title="toggle visibility">👁️</button>
-        <button id="notifications" title="notifications">🔔</button>
+      <div class="right-area">
+        <button id="btnVisibility" class="icon-btn" title="Toggle visibility">👁️</button>
+        <button id="btnNotify" class="icon-btn" title="Notifications">🔔</button>
       </div>
     </div>
   </header>
 
-  <main id="main">
-    <section class="summary">
+  <!-- Main content -->
+  <main id="app" role="main">
+    <!-- Summary card -->
+    <section class="summary-wrap">
       <div class="summary-card">
         <div class="summary-left">
           <div class="label">MY ASSETS</div>
-          <div class="amount" id="totalAssets">₹0</div>
-          <div class="holdings" id="holdingsCount">Holdings: 0</div>
+          <div id="totalAssets" class="total-amount">₹0</div>
+          <div id="holdingsCount" class="holdings">Holdings: 0</div>
         </div>
         <div class="summary-right">
-          <div class="change-pill" id="totalChange">+₹0 (0.00%)</div>
+          <div id="totalChange" class="change-pill">+₹0 (0.00%)</div>
         </div>
       </div>
     </section>
 
-    <h2 class="section-title" id="stockHeader">Buy Stocks</h2>
+    <!-- Page title -->
+    <h2 id="sectionTitle" class="section-title">Buy Stocks</h2>
 
-    <section id="stocksList" class="cards-grid">
-      <!-- stock cards injected by JS -->
+    <!-- Content area where stocks/funds/portfolio render -->
+    <section id="contentArea" class="content-area">
+      <div id="cardsContainer" class="cards-container">
+        <!-- JS will inject stock/fund/portfolio cards here -->
+      </div>
     </section>
   </main>
 
-  <!-- Bottom Tabs -->
-  <nav class="bottom-nav">
-    <button class="tab active" data-tab="stocks">📈 Stocks</button>
-    <button class="tab" data-tab="funds">📊 Funds</button>
-    <button class="tab" data-tab="portfolio">📁 Portfolio</button>
+  <!-- Bottom tab navigation -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="tab active" data-tab="stocks" id="tabStocks">📈 Stocks</button>
+    <button class="tab" data-tab="funds" id="tabFunds">📊 Funds</button>
+    <button class="tab" data-tab="portfolio" id="tabPortfolio">📁 Portfolio</button>
   </nav>
 
-  <!-- Stock detail modal (hidden by default) -->
-  <div id="detailModal" class="modal hidden" aria-hidden="true">
-    <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-content" role="dialog" aria-modal="true">
-      <button class="close-modal" id="closeModal">✕</button>
-      <div class="detail-header">
-        <div>
-          <div id="detailName" class="detail-name">Reliance Industries Ltd</div>
-          <div id="detailType" class="detail-type">Stock | RELIANCE</div>
+  <!-- STOCK DETAIL (full-height drawer modal) -->
+  <div id="detailDrawer" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <div class="drawer-content" role="dialog" aria-modal="true">
+      <button id="closeDrawer" class="drawer-close" aria-label="Close">✕</button>
+
+      <div class="drawer-top">
+        <div class="drawer-left">
+          <div id="detailAvatar" class="avatar-sm">--</div>
+          <div class="drawer-meta">
+            <div id="detailName" class="drawer-name">Company Name</div>
+            <div id="detailType" class="drawer-type">Stock | SYMBOL</div>
+          </div>
         </div>
-        <div class="detail-price">
-          <div id="detailPrice">₹0</div>
-          <div id="detailPct" class="detail-pct">▲0.00%</div>
+
+        <div class="drawer-right">
+          <div id="detailPriceLarge" class="detail-price-large">₹0</div>
+          <div id="detailChangeLarge" class="detail-change-large">▲0.00%</div>
         </div>
       </div>
 
-      <div class="chart-wrap">
-        <canvas id="detailChart" width="400" height="220"></canvas>
-        <div class="ranges">
-          <button class="range active" data-range="1D">1D</button>
-          <button class="range" data-range="1W">1W</button>
-          <button class="range" data-range="1M">1M</button>
-          <button class="range" data-range="6M">6M</button>
-          <button class="range" data-range="1Y">1Y</button>
+      <div class="drawer-chart-wrap">
+        <canvas id="detailChart" width="800" height="320"></canvas>
+        <div class="drawer-ranges">
+          <button class="range-btn active" data-range="1D">1D</button>
+          <button class="range-btn" data-range="1W">1W</button>
+          <button class="range-btn" data-range="1M">1M</button>
+          <button class="range-btn" data-range="6M">6M</button>
+          <button class="range-btn" data-range="1Y">1Y</button>
         </div>
       </div>
 
-      <div class="trade-area">
-        <label for="qty">Qty</label>
-        <input id="qty" type="number" min="1" value="1" />
+      <div class="drawer-trade">
+        <label for="tradeQty" class="trade-label">Qty</label>
+        <input id="tradeQty" class="trade-input" type="number" min="1" value="1" />
         <div class="trade-buttons">
-          <button id="sellBtn" class="sell">Sell</button>
-          <button id="buyBtn" class="buy">Buy</button>
-          <button id="sipBtn" class="sip">SIP</button>
+          <button id="sellAction" class="btn sell">SELL</button>
+          <button id="buyAction" class="btn buy">BUY</button>
+          <button id="sipAction" class="btn sip">SIP</button>
         </div>
+      </div>
+
+      <div class="drawer-tabs">
+        <button class="drawer-tab active">Details</button>
+        <button class="drawer-tab">Orders</button>
       </div>
     </div>
   </div>
 
+  <!-- App script -->
   <script src="script.js"></script>
 </body>
 </html>
