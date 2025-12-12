@@ -1,176 +1,147 @@
-/* styles/header.css */
+/* styles/header.css
+   Header styling for Nivesh Yatra - place in styles/header.css
+*/
+
 :root{
-  --ny-green-1: #2f9c78;
-  --ny-green-2: #2b7f6a;
-  --ny-dark: #071212;
-  --ny-card: rgba(255,255,255,0.03);
-  --ny-text: #e6f3ee;
-  --ny-muted: #9fb8ab;
-  --ny-accent: #15c884;
-  --ny-radius: 14px;
-  --ny-header-h: 92px;
-  --ny-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  --ny-green-1: #2fa37a;
+  --ny-green-2: #1f8f6b;
+  --ny-dark: #031312;
+  --ny-muted: rgba(255,255,255,0.85);
 }
 
-/* header container */
-#ny-header {
+/* small helper */
+.hidden { display: none !important; }
+
+/* Header container */
+.ny-header{
+  width:100%;
   background: linear-gradient(90deg, var(--ny-green-1), var(--ny-green-2));
-  color: var(--ny-text);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  color: #fff;
   padding: 14px 16px;
-  box-shadow: var(--ny-shadow);
-  position: sticky;
-  top: 0;
-  z-index: 1200;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  box-sizing: border-box;
 }
 
-/* inner layout */
-#ny-header .ny-header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-/* left: logo + title */
-#ny-header .ny-left {
+/* Inner content: space between left and right */
+.ny-header-inner{
   display:flex;
-  gap:12px;
   align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  max-width:1200px;
+  margin:0 auto;
 }
 
-#ny-header .ny-logo{
-  width:56px;
-  height:56px;
-  border-radius:12px;
+/* left group: logo + titles */
+.ny-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+/* logo image */
+.ny-logo{
+  width:64px;
+  height:64px;
   object-fit:cover;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.45);
-  background: rgba(255,255,255,0.06);
+  border-radius:12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  background: rgba(255,255,255,0.03);
 }
 
-/* title text */
-#ny-header .ny-title-wrap{
+/* title column */
+.ny-title-wrap{
   display:flex;
   flex-direction:column;
   line-height:1;
 }
 
-#ny-header .ny-title{
-  font-weight:700;
-  font-size:18px;
-  letter-spacing: -0.2px;
+/* primary title (company name) */
+.ny-title{
+  font-size:20px;
+  font-weight:800;
+  letter-spacing: -0.5px;
+  color:#ffffff;
 }
 
-#ny-header .ny-subtitle{
-  font-size:12.5px;
-  color: rgba(255,255,255,0.9);
-  opacity:0.9;
+/* subtitle */
+.ny-subtitle{
+  font-size:12px;
+  color: rgba(255,255,255,0.92);
   margin-top:4px;
 }
 
-/* right side */
-#ny-header .ny-right{
+/* right area (icons + guest chip) */
+.ny-right{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
 }
 
-/* small icon buttons */
+/* icon row (eye / bell) */
+.ny-icon-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* icon button style */
 .ny-icon-btn{
-  width:40px;
-  height:40px;
-  border-radius:10px;
-  display:flex;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-  background: rgba(255,255,255,0.06);
-  cursor:pointer;
-  color: var(--ny-text);
-  transition: transform .12s ease, background .12s ease;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.32);
-}
-.ny-icon-btn:active{ transform: translateY(1px) }
-
-/* profile wrap */
-.ny-profile-wrap{ position: relative; }
-
-/* auth buttons when not logged in */
-.ny-auth-btns{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.btn{
-  padding:8px 10px;
+  width:42px;
+  height:42px;
   border-radius:10px;
+  background: rgba(255,255,255,0.06);
   border: none;
-  background: rgba(255,255,255,0.08);
-  color:var(--ny-text);
   cursor:pointer;
-  font-size:13px;
+  transition: transform .12s ease, background .12s ease;
 }
-.btn-ghost{ background: rgba(255,255,255,0.06); }
+.ny-icon-btn:active{ transform: translateY(1px); }
+.ny-icon-btn svg { fill: #eaf7ef; opacity:0.95; }
 
-/* profile display after login */
-.ny-profile{
-  display:flex;
+/* guest chip (profile placeholder) */
+.ny-profile-area { display:flex; align-items:center; }
+.ny-guest-chip{
+  display:inline-flex;
   align-items:center;
   gap:10px;
-  background: transparent;
-  cursor:pointer;
-  padding:6px 8px;
+  background: rgba(255,255,255,0.06);
+  padding:8px 12px;
   border-radius:12px;
-}
-.ny-avatar{
-  width:44px;
-  height:44px;
-  border-radius:10px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:700;
-  color: rgba(255,255,255,0.95);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.35);
-}
-
-/* username */
-.ny-username{
-  font-size:14px;
+  color:#fff;
+  border:none;
+  cursor:pointer;
   font-weight:600;
 }
-
-/* small caret */
-.ny-caret{ font-size:12px; color: rgba(255,255,255,0.9) }
-
-/* dropdown menu */
-.ny-profile-menu{
-  position:absolute;
-  right:0;
-  top:calc(100% + 10px);
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-  border-radius:10px;
-  padding:6px 8px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.5);
-  min-width:140px;
+.ny-guest-initial{
+  width:34px;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  background: rgba(255,255,255,0.12);
+  font-weight:700;
 }
-.ny-profile-menu .menu-item{
-  padding:10px 8px;
-  font-size:14px;
-  color:var(--ny-text);
-  border-radius:6px;
-  cursor:pointer;
+
+/* Small view adjustments */
+@media (max-width:520px){
+  .ny-header-inner { gap:12px; }
+  .ny-title { font-size:18px; }
+  .ny-logo { width:52px; height:52px; }
+  .ny-icon-btn { width:38px; height:38px; }
 }
-.ny-profile-menu .menu-item:hover{ background: rgba(255,255,255,0.02) }
 
-/* hidden helper */
-.hidden{ display:none !important }
+/* HIDE the alternate/duplicate header block that lives lower in the page
+   (your HTML includes another header block called .app-header — hide it) */
+.app-header, .logo-badge { display:none !important; }
 
-/* responsive */
-@media (max-width:640px){
-  #ny-header .ny-title{ font-size:16px }
-  #ny-header .ny-subtitle{ font-size:12px }
-  .ny-avatar{ width:44px; height:44px }
-  }
+/* Fix for any stray "NY" text that might have been left */
+.logo-badge { display:none; }
+
+/* Also make sure main page title below header isn't overlapped.
+   Give some top margin to page content (so header doesn't cover it) */
+body { padding-top: 0; margin:0; background: #071211; color: #e7efe7; font-family: Inter, system-ui, Arial, sans-serif; }
+main, .page-content { padding: 20px; max-width:1200px; margin: 0 auto; }
