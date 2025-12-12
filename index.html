@@ -10,7 +10,6 @@
 </head>
 
 <body>
-
     <!-- HEADER -->
     <header class="app-header">
         <div class="left-header">
@@ -25,7 +24,7 @@
     </header>
 
     <!-- PROFILE PANEL -->
-    <section id="profilePanel" class="profile-panel hidden">
+    <section id="profilePanel" class="profile-panel">
         <h2>Your Profile</h2>
         <p><strong>Demo Money:</strong> ₹<span id="walletBalance">10000</span></p>
 
@@ -40,7 +39,7 @@
         <button id="closeProfile" class="close-profile">Close</button>
     </section>
 
-    <!-- MAIN AREA -->
+    <!-- MAIN SCREENS -->
     <main id="screenContainer">
 
         <!-- STOCKS SCREEN -->
@@ -50,13 +49,13 @@
         </section>
 
         <!-- FUNDS SCREEN -->
-        <section id="fundsScreen" class="screen hidden">
+        <section id="fundsScreen" class="screen">
             <h2 class="screen-title">Mutual Funds</h2>
             <div id="fundsList" class="fund-list"></div>
         </section>
 
         <!-- PORTFOLIO SCREEN -->
-        <section id="portfolioScreen" class="screen hidden">
+        <section id="portfolioScreen" class="screen">
             <h2 class="screen-title">Portfolio</h2>
             <div id="portfolioSummary"></div>
             <h3>Your Holdings</h3>
@@ -90,6 +89,7 @@
                 <button id="confirmTrade">Confirm</button>
             </div>
         </section>
+
     </main>
 
     <!-- TOAST -->
