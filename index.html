@@ -1,53 +1,120 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nivesh-Yatra</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nivesh Yatra - Demo</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN (used for charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+  <!-- Header: logo left, brand center, icons right -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <div class="left-area">
+        <img src="logo.png" alt="Nivesh Yatra logo" class="logo" />
+      </div>
 
-    <!-- HEADER -->
-    <header id="mainHeader">
-        <div class="left">
-            <img src="logo.png" class="app-logo" alt="Nivesh Yatra Logo">
-            <div class="title-wrap">
-                <div class="app-title">Nivesh-Yatra</div>
-                <div class="subtitle">Turning dreams into Assets.</div>
-            </div>
+      <div class="center-area">
+        <div class="brand-title">Nivesh Yatra</div>
+        <div class="brand-sub">Turning dreams into Assets.</div>
+      </div>
+
+      <div class="right-area">
+        <button id="btnVisibility" class="icon-btn" title="Toggle visibility">👁️</button>
+        <button id="btnNotify" class="icon-btn" title="Notifications">🔔</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main id="app" role="main">
+    <!-- Summary card -->
+    <section class="summary-wrap">
+      <div class="summary-card">
+        <div class="summary-left">
+          <div class="label">MY ASSETS</div>
+          <div id="totalAssets" class="total-amount">₹0</div>
+          <div id="holdingsCount" class="holdings">Holdings: 0</div>
+        </div>
+        <div class="summary-right">
+          <div id="totalChange" class="change-pill">+₹0 (0.00%)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page title -->
+    <h2 id="sectionTitle" class="section-title">Buy Stocks</h2>
+
+    <!-- Content area where stocks/funds/portfolio render -->
+    <section id="contentArea" class="content-area">
+      <div id="cardsContainer" class="cards-container">
+        <!-- JS will inject stock/fund/portfolio cards here -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom tab navigation -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="tab active" data-tab="stocks" id="tabStocks">📈 Stocks</button>
+    <button class="tab" data-tab="funds" id="tabFunds">📊 Funds</button>
+    <button class="tab" data-tab="portfolio" id="tabPortfolio">📁 Portfolio</button>
+  </nav>
+
+  <!-- STOCK DETAIL (full-height drawer modal) -->
+  <div id="detailDrawer" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <div class="drawer-content" role="dialog" aria-modal="true">
+      <button id="closeDrawer" class="drawer-close" aria-label="Close">✕</button>
+
+      <div class="drawer-top">
+        <div class="drawer-left">
+          <div id="detailAvatar" class="avatar-sm">--</div>
+          <div class="drawer-meta">
+            <div id="detailName" class="drawer-name">Company Name</div>
+            <div id="detailType" class="drawer-type">Stock | SYMBOL</div>
+          </div>
         </div>
 
-        <div class="right">
-            <button id="profileBtn" class="profile-chip">
-                <div class="circle">G</div>
-                <span class="name">Guest168</span>
-            </button>
+        <div class="drawer-right">
+          <div id="detailPriceLarge" class="detail-price-large">₹0</div>
+          <div id="detailChangeLarge" class="detail-change-large">▲0.00%</div>
         </div>
-    </header>
+      </div>
 
-    <!-- NAV TABS UNDER HEADER -->
-    <nav id="tabs">
-        <button class="tab active" data-tab="stocks">📈 Stocks</button>
-        <button class="tab" data-tab="funds">📊 Funds</button>
-        <button class="tab" data-tab="portfolio">📁 Portfolio</button>
-    </nav>
-
-    <!-- MAIN CONTENT -->
-    <main id="mainContent">
-
-        <h2 class="section-title">Buy Stocks</h2>
-
-        <div id="stockList" class="list">
-            <!-- JS will insert items -->
+      <div class="drawer-chart-wrap">
+        <canvas id="detailChart" width="800" height="320"></canvas>
+        <div class="drawer-ranges">
+          <button class="range-btn active" data-range="1D">1D</button>
+          <button class="range-btn" data-range="1W">1W</button>
+          <button class="range-btn" data-range="1M">1M</button>
+          <button class="range-btn" data-range="6M">6M</button>
+          <button class="range-btn" data-range="1Y">1Y</button>
         </div>
+      </div>
 
-    </main>
+      <div class="drawer-trade">
+        <label for="tradeQty" class="trade-label">Qty</label>
+        <input id="tradeQty" class="trade-input" type="number" min="1" value="1" />
+        <div class="trade-buttons">
+          <button id="sellAction" class="btn sell">SELL</button>
+          <button id="buyAction" class="btn buy">BUY</button>
+          <button id="sipAction" class="btn sip">SIP</button>
+        </div>
+      </div>
 
-    <!-- SCRIPTS -->
-    <script src="scripts.js"></script>
+      <div class="drawer-tabs">
+        <button class="drawer-tab active">Details</button>
+        <button class="drawer-tab">Orders</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App script -->
+  <script src="script.js"></script>
 </body>
 </html>
