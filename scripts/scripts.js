@@ -1,6 +1,6 @@
 /* ============================================================
    MARKET DATA (COMPRESSED REALISTIC 6-MONTH HISTORY)
-   ============================================================ */
+============================================================ */
 
 const STOCKS = [
     {
@@ -8,50 +8,64 @@ const STOCKS = [
         name: "Reliance Industries Ltd",
         price: 1556.50,
         change: +1.2,
-        history6M: [1420, 1455, 1470, 1500, 1525, 1540, 1556]
+        history6M: [1420, 1455, 1470, 1500, 1525, 1540, 1556],
+        history3M: [1500, 1520, 1530, 1540, 1556],
+        history1M: [1530, 1540, 1556]
     },
     {
         symbol: "TATAMOTORS",
         name: "Tata Motors Ltd",
         price: 373.45,
         change: -0.8,
-        history6M: [310, 325, 330, 345, 350, 360, 373]
+        history6M: [310, 325, 330, 345, 350, 360, 373],
+        history3M: [340, 350, 360, 370, 373],
+        history1M: [360, 365, 373]
     },
     {
         symbol: "HDFCBANK",
         name: "HDFC Bank Ltd",
         price: 1000.20,
         change: +0.45,
-        history6M: [910, 930, 950, 960, 980, 995, 1000]
+        history6M: [910, 930, 950, 960, 980, 995, 1000],
+        history3M: [950, 960, 975, 995, 1000],
+        history1M: [980, 990, 1000]
     },
     {
         symbol: "WIPRO",
         name: "Wipro Ltd",
         price: 260.55,
         change: -0.25,
-        history6M: [230, 240, 245, 250, 255, 258, 260]
+        history6M: [230, 240, 245, 250, 255, 258, 260],
+        history3M: [245, 250, 255, 258, 260],
+        history1M: [255, 258, 260]
     },
     {
         symbol: "AFFLE",
         name: "Affle India Ltd",
         price: 1685.80,
         change: +2.1,
-        history6M: [1500, 1530, 1580, 1600, 1630, 1670, 1685]
+        history6M: [1500, 1530, 1580, 1600, 1630, 1670, 1685],
+        history3M: [1580, 1600, 1650, 1670, 1685],
+        history1M: [1650, 1670, 1685]
     },
     {
         symbol: "ADANIGREEN",
         name: "Adani Green Energy Ltd",
         price: 1040.20,
         change: +3.1,
-        history6M: [860, 900, 920, 950, 980, 1020, 1040]
+        history6M: [860, 900, 920, 950, 980, 1020, 1040],
+        history3M: [920, 950, 1000, 1020, 1040],
+        history1M: [1000, 1020, 1040]
     },
     {
         symbol: "MRF",
         name: "MRF Ltd",
         price: 98000,
         change: +0.9,
-        history6M: [88000, 90000, 93000, 95000, 96000, 97500, 98000]
-    },
+        history6M: [88000, 90000, 93000, 95000, 96000, 97500, 98000],
+        history3M: [94000, 95500, 97000, 97500, 98000],
+        history1M: [97000, 97500, 98000]
+    }
 ];
 
 /* MUTUAL FUNDS */
@@ -60,49 +74,65 @@ const FUNDS = [
         symbol: "EDMID150",
         name: "Edelweiss Nifty Midcap150 Momentum 50 Index Fund",
         nav: 18.39,
-        history6M: [15.2, 15.8, 16.3, 17.0, 17.8, 18.1, 18.39]
+        history6M: [15.2, 15.8, 16.3, 17.0, 17.8, 18.1, 18.39],
+        history3M: [16.8, 17.2, 18.0, 18.39],
+        history1M: [17.8, 18.1, 18.39]
     },
     {
         symbol: "HDFCMID",
         name: "HDFC Mid Cap Fund",
         nav: 114.21,
-        history6M: [104, 106, 108, 110, 111, 113, 114]
+        history6M: [104, 106, 108, 110, 111, 113, 114],
+        history3M: [110, 112, 114],
+        history1M: [112, 113, 114]
     },
     {
         symbol: "HDFCSMALL",
         name: "HDFC Small Cap Fund",
         nav: 162.41,
-        history6M: [150, 152, 155, 157, 160, 161, 162]
+        history6M: [150, 152, 155, 157, 160, 161, 162],
+        history3M: [157, 160, 162],
+        history1M: [160, 161, 162]
     },
     {
         symbol: "NIPPLARGE",
         name: "Nippon India Large Cap Fund",
         nav: 74.33,
-        history6M: [66, 68, 70, 71, 72, 73, 74]
+        history6M: [66, 68, 70, 71, 72, 73, 74],
+        history3M: [71, 72, 74],
+        history1M: [72, 73, 74]
     },
     {
         symbol: "SBILARGE",
         name: "SBI Large Cap Fund",
         nav: 35.12,
-        history6M: [30, 31, 32, 33, 34, 34.7, 35.1]
+        history6M: [30, 31, 32, 33, 34, 34.7, 35.1],
+        history3M: [33, 34, 35.1],
+        history1M: [34.5, 34.7, 35.1]
     },
     {
         symbol: "NIPPMID",
         name: "Nippon India Growth Mid Cap Fund",
         nav: 129.83,
-        history6M: [115, 118, 120, 122, 124, 128, 129]
+        history6M: [115, 118, 120, 122, 124, 128, 129],
+        history3M: [122, 126, 129],
+        history1M: [126, 128, 129]
     },
     {
         symbol: "NIPPSMALL",
         name: "Nippon India Small Cap Fund",
         nav: 102.11,
-        history6M: [89, 92, 94, 97, 99, 101, 102]
+        history6M: [89, 92, 94, 97, 99, 101, 102],
+        history3M: [97, 100, 102],
+        history1M: [100, 101, 102]
     },
     {
         symbol: "HDFCLARGE",
         name: "HDFC Large Cap Fund",
         nav: 32.55,
-        history6M: [28, 29, 30, 31, 31.5, 32, 32.55]
+        history6M: [28, 29, 30, 31, 31.5, 32, 32.55],
+        history3M: [31, 31.8, 32.55],
+        history1M: [31.8, 32, 32.55]
     }
 ];
 
@@ -110,41 +140,47 @@ const FUNDS = [
    APP STATE
 ============================================================ */
 let wallet = 10000;
-let portfolio = {};     
-let orders = [];        
-let activeAsset = null; 
-let activeType = null;  
+let portfolio = {};
+let orders = [];
+let activeAsset = null;
+let activeType = null;
 let chart = null;
+let currentRange = "6M";
 
 /* ============================================================
    UI ELEMENTS
 ============================================================ */
 const navButtons = document.querySelectorAll(".nav-btn");
 const screens = document.querySelectorAll(".screen");
-
 const stocksList = document.getElementById("stocksList");
 const fundsList = document.getElementById("fundsList");
 
-const holdingsList = document.getElementById("holdingsList");
-const portfolioSummary = document.getElementById("portfolioSummary");
-
-const profilePanel = document.getElementById("profilePanel");
-const profileBtn = document.getElementById("profileBtn");
-const closeProfile = document.getElementById("closeProfile");
-const walletBalance = document.getElementById("walletBalance");
-const addMoneyBtn = document.getElementById("addMoneyBtn");
-
-/* Detail Screen */
-const detailScreen = document.getElementById("detailScreen");
-const backToMain = document.getElementById("backToMain");
-const detailName = document.getElementById("detailName");
-const detailPrice = document.getElementById("detailPrice");
 const tradeBox = document.getElementById("tradeBox");
 const tradeInput = document.getElementById("tradeInput");
 const confirmTrade = document.getElementById("confirmTrade");
+const tradeTitle = document.getElementById("tradeTitle");
+
+const toast = document.getElementById("toast");
 
 /* ============================================================
-   RENDER STOCK LIST
+   TOAST POPUP
+============================================================ */
+function showToast(message, isError = false) {
+    toast.textContent = message;
+
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
+
+    if (isError) toast.classList.add("error");
+    else toast.classList.remove("error");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2000);
+}
+
+/* ============================================================
+   RENDER STOCK / FUND LISTS
 ============================================================ */
 function renderStocks() {
     stocksList.innerHTML = "";
@@ -169,16 +205,10 @@ function renderStocks() {
                 </div>
             </div>
         `;
-
         stocksList.appendChild(card);
     });
 }
 
-renderStocks();
-
-/* ============================================================
-   RENDER FUND LIST
-============================================================ */
 function renderFunds() {
     fundsList.innerHTML = "";
     FUNDS.forEach(fund => {
@@ -199,11 +229,11 @@ function renderFunds() {
                 ₹${fund.nav}
             </div>
         `;
-
         fundsList.appendChild(card);
     });
 }
 
+renderStocks();
 renderFunds();
 
 /* ============================================================
@@ -211,7 +241,7 @@ renderFunds();
 ============================================================ */
 navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-        const target = btn.getAttribute("data-screen");
+        const target = btn.dataset.screen;
 
         navButtons.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
@@ -224,18 +254,7 @@ navButtons.forEach(btn => {
 });
 
 /* ============================================================
-   PROFILE PANEL
-============================================================ */
-profileBtn.onclick = () => profilePanel.classList.add("active");
-closeProfile.onclick = () => profilePanel.classList.remove("active");
-
-addMoneyBtn.onclick = () => {
-    wallet += 1000;
-    walletBalance.textContent = wallet;
-};
-
-/* ============================================================
-   DETAIL PAGE OPEN
+   DETAIL SCREEN 
 ============================================================ */
 function openDetail(asset, type) {
     activeAsset = asset;
@@ -244,114 +263,125 @@ function openDetail(asset, type) {
     detailName.textContent = asset.name;
     detailPrice.textContent = type === "stock" ? `₹${asset.price}` : `NAV: ₹${asset.nav}`;
 
-    switchScreen(detailScreen);
+    switchChartRange("6M");
 
-    drawChart(asset.history6M);
-}
-
-/* ============================================================
-   SWITCH SCREEN
-============================================================ */
-function switchScreen(screen) {
+    detailScreen.classList.remove("hidden");
     screens.forEach(s => s.classList.remove("active-screen"));
-    screen.classList.add("active-screen");
 }
+
+document.querySelectorAll(".time-buttons button").forEach(btn => {
+    btn.onclick = () => {
+        document.querySelector(".time-buttons .active").classList.remove("active");
+        btn.classList.add("active");
+
+        switchChartRange(btn.dataset.time);
+    };
+});
 
 /* ============================================================
    CHART RENDERING
 ============================================================ */
+function switchChartRange(range) {
+    currentRange = range;
+
+    let data =
+        range === "1M" ? activeAsset.history1M :
+        range === "3M" ? activeAsset.history3M :
+        activeAsset.history6M;
+
+    drawChart(data);
+}
+
 function drawChart(history) {
     if (chart) chart.destroy();
 
-    const ctx = document.getElementById("detailChart").getContext("2d");
-
-    chart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: ["6M-5", "6M-4", "6M-3", "6M-2", "6M-1", "6M", "Today"],
-            datasets: [{
-                data: history,
-                borderColor: "#1fa46e",
-                borderWidth: 2,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
+    chart = new Chart(
+        document.getElementById("detailChart").getContext("2d"),
+        {
+            type: "line",
+            data: {
+                labels: history.map((_, idx) => `Point ${idx + 1}`),
+                datasets: [{
+                    data: history,
+                    borderColor: "#1fa46e",
+                    borderWidth: 2,
+                    tension: 0.3
+                }]
             },
-            scales: {
-                x: { ticks: { color: "white" } },
-                y: { ticks: { color: "white" } }
+            options: {
+                plugins: { legend: { display: false }},
+                scales: {
+                    x: { ticks: { color: "white" }},
+                    y: { ticks: { color: "white" }}
+                }
             }
         }
-    });
+    );
 }
 
 /* ============================================================
-   BUY / SELL / SIP HANDLING
+   BUY / SELL / SIP
 ============================================================ */
-document.getElementById("buyBtn").onclick = () => {
-    tradeBox.classList.remove("hidden");
-    confirmTrade.onclick = handleBuy;
-};
+buyBtn.onclick = () => openTrade("BUY");
+sellBtn.onclick = () => openTrade("SELL");
+sipBtn.onclick = () => openTrade("SIP");
 
-document.getElementById("sellBtn").onclick = () => {
+function openTrade(type) {
     tradeBox.classList.remove("hidden");
-    confirmTrade.onclick = handleSell;
-};
 
-/* ---------------- BUY ---------------- */
+    if (type === "BUY") {
+        tradeTitle.textContent = "Buy Quantity";
+        confirmTrade.textContent = "Buy Now";
+        confirmTrade.onclick = handleBuy;
+    }
+    else if (type === "SELL") {
+        tradeTitle.textContent = "Sell Quantity";
+        confirmTrade.textContent = "Sell Now";
+        confirmTrade.onclick = handleSell;
+    }
+    else {
+        tradeTitle.textContent = "SIP Monthly Amount";
+        confirmTrade.textContent = "Start SIP";
+        confirmTrade.onclick = handleSIP;
+    }
+}
+
+/* ================== BUY ================== */
 function handleBuy() {
     let qty = Number(tradeInput.value);
-    if (qty <= 0) return alert("Enter amount/quantity.");
+    if (qty <= 0) return showToast("Enter valid quantity!", true);
 
-    let cost;
-    if (activeType === "stock") cost = qty * activeAsset.price;
-    else cost = qty;  
+    let cost = activeType === "stock" ? qty * activeAsset.price : qty;
 
-    if (wallet < cost) return alert("Not enough funds.");
+    if (wallet < cost)
+        return showToast("Insufficient funds!", true);
 
     wallet -= cost;
     walletBalance.textContent = wallet;
 
-    if (!portfolio[activeAsset.symbol]) {
-        portfolio[activeAsset.symbol] = {
-            type: activeType,
-            qty: 0,
-            invested: 0
-        };
-    }
+    if (!portfolio[activeAsset.symbol])
+        portfolio[activeAsset.symbol] = { type: activeType, qty: 0, invested: 0 };
 
     portfolio[activeAsset.symbol].qty += qty;
     portfolio[activeAsset.symbol].invested += cost;
 
-    orders.push({
-        type: "BUY",
-        symbol: activeAsset.symbol,
-        qty,
-        cost,
-        date: new Date().toLocaleString()
-    });
+    showToast(`Bought ${qty} units of ${activeAsset.symbol}`);
 
     tradeInput.value = "";
     tradeBox.classList.add("hidden");
     updatePortfolio();
 }
 
-/* ---------------- SELL ---------------- */
+/* ================== SELL ================== */
 function handleSell() {
     let qty = Number(tradeInput.value);
-    if (qty <= 0) return alert("Enter amount/quantity.");
+    if (qty <= 0) return showToast("Enter valid quantity!", true);
 
     let holding = portfolio[activeAsset.symbol];
-    if (!holding || holding.qty < qty) return alert("Not enough quantity.");
+    if (!holding || holding.qty < qty)
+        return showToast("Not enough quantity!", true);
 
-    let credit =
-        activeType === "stock"
-            ? qty * activeAsset.price
-            : qty;
+    let credit = activeType === "stock" ? qty * activeAsset.price : qty;
 
     wallet += credit;
     walletBalance.textContent = wallet;
@@ -359,15 +389,34 @@ function handleSell() {
     holding.qty -= qty;
     holding.invested -= credit;
 
-    if (holding.qty <= 0) delete portfolio[activeAsset.symbol];
+    if (holding.qty === 0)
+        delete portfolio[activeAsset.symbol];
 
-    orders.push({
-        type: "SELL",
-        symbol: activeAsset.symbol,
-        qty,
-        credit,
-        date: new Date().toLocaleString()
-    });
+    showToast(`Sold ${qty} units of ${activeAsset.symbol}`);
+
+    tradeInput.value = "";
+    tradeBox.classList.add("hidden");
+    updatePortfolio();
+}
+
+/* ================== SIP ================== */
+function handleSIP() {
+    let amount = Number(tradeInput.value);
+    if (amount <= 0) return showToast("Enter valid amount!", true);
+    if (wallet < amount) return showToast("Insufficient funds!", true);
+
+    wallet -= amount;
+    walletBalance.textContent = wallet;
+
+    let units = amount / activeAsset.nav;
+
+    if (!portfolio[activeAsset.symbol])
+        portfolio[activeAsset.symbol] = { type: activeType, qty: 0, invested: 0 };
+
+    portfolio[activeAsset.symbol].qty += units;
+    portfolio[activeAsset.symbol].invested += amount;
+
+    showToast(`SIP: Bought units worth ₹${amount}`);
 
     tradeInput.value = "";
     tradeBox.classList.add("hidden");
@@ -375,7 +424,7 @@ function handleSell() {
 }
 
 /* ============================================================
-   PORTFOLIO RENDERING
+   PORTFOLIO
 ============================================================ */
 function updatePortfolio() {
     holdingsList.innerHTML = "";
@@ -384,30 +433,29 @@ function updatePortfolio() {
     let invested = 0;
 
     for (let symbol in portfolio) {
-        const hold = portfolio[symbol];
+        let item = portfolio[symbol];
 
         let asset =
             STOCKS.find(s => s.symbol === symbol) ||
             FUNDS.find(f => f.symbol === symbol);
 
-        let price = hold.type === "stock" ? asset.price : asset.nav;
-        let value = price * hold.qty;
+        let price = item.type === "stock" ? asset.price : asset.nav;
+        let value = price * item.qty;
 
         totalValue += value;
-        invested += hold.invested;
+        invested += item.invested;
 
-        const div = document.createElement("div");
+        let div = document.createElement("div");
         div.className = "holding";
-
         div.innerHTML = `
             <strong>${asset.name}</strong><br>
-            Qty: ${hold.qty}<br>
+            Qty: ${item.qty.toFixed(2)}<br>
             Value: ₹${value.toFixed(2)}<br>
-            P/L: <span class="${value >= hold.invested ? "green" : "red"}">
-                ₹${(value - hold.invested).toFixed(2)}
+            P/L:
+            <span class="${value >= item.invested ? "green" : "red"}">
+                ₹${(value - item.invested).toFixed(2)}
             </span>
         `;
-
         holdingsList.appendChild(div);
     }
 
@@ -420,8 +468,6 @@ function updatePortfolio() {
         </span>
     `;
 }
-
-updatePortfolio();
 
 /* ============================================================
    BACK BUTTON
