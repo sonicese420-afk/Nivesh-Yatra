@@ -1,114 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nivesh Yatra — Demo</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nivesh-Yatra</title>
 
-  <!-- main stylesheet -->
-  <link rel="stylesheet" href="styles/styles.css" />
-
-  <!-- Chart.js CDN (used by script) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <!-- ===== HEADER ===== -->
-  <header id="ny-header" class="ny-header" role="banner">
-    <div class="ny-header-inner">
-      <div class="ny-left">
-        <img src="logo.png" alt="Nivesh Yatra logo" class="ny-logo" id="nyLogo">
-        <div class="ny-title-wrap">
-          <div class="ny-title">Nivesh-Yatra</div>
-          <div class="ny-subtitle">Turning dreams into Assets.</div>
+
+    <!-- HEADER -->
+    <header id="mainHeader">
+        <div class="left">
+            <img src="logo.png" class="app-logo" alt="Nivesh Yatra Logo">
+            <div class="title-wrap">
+                <div class="app-title">Nivesh-Yatra</div>
+                <div class="subtitle">Turning dreams into Assets.</div>
+            </div>
         </div>
-      </div>
 
-      <div class="ny-right">
-        <button class="ny-icon-btn" id="nyEyeBtn" title="Toggle assets visibility">👁️</button>
-        <button class="ny-icon-btn" id="nyBellBtn" title="Notifications">🔔</button>
-
-        <!-- guest chip (single element) -->
-        <div id="nyGuestChip" class="ny-guest-chip" title="Continue as guest">
-          <span class="ny-guest-initial">G</span>
-          <span class="ny-guest-name" id="nyGuestName">Guest168</span>
+        <div class="right">
+            <button id="profileBtn" class="profile-chip">
+                <div class="circle">G</div>
+                <span class="name">Guest168</span>
+            </button>
         </div>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- ===== MAIN ===== -->
-  <main id="mainContent">
-    <section class="assets-card" id="assetsCard">
-      <div class="assets-left">
-        <div class="assets-label">MY ASSETS</div>
-        <div class="assets-value" id="totalValue">₹0</div>
-        <div class="assets-hold" id="holdingsCount">Holdings: 0</div>
-      </div>
-      <div class="assets-right">
-        <div id="dailyChange" class="change-badge">+₹0 (0.00%)</div>
-      </div>
-    </section>
+    <!-- NAV TABS UNDER HEADER -->
+    <nav id="tabs">
+        <button class="tab active" data-tab="stocks">📈 Stocks</button>
+        <button class="tab" data-tab="funds">📊 Funds</button>
+        <button class="tab" data-tab="portfolio">📁 Portfolio</button>
+    </nav>
 
-    <!-- tabs -->
-    <div class="nav-tabs">
-      <button class="tab btn-active" data-tab="stocks">Stocks</button>
-      <button class="tab" data-tab="funds">Funds</button>
-      <button class="tab" data-tab="portfolio">Portfolio</button>
-    </div>
+    <!-- MAIN CONTENT -->
+    <main id="mainContent">
 
-    <h2 class="section-title">Buy Stocks</h2>
+        <h2 class="section-title">Buy Stocks</h2>
 
-    <!-- stock list -->
-    <div id="stockList" class="list">
-      <!-- items are inserted by JS -->
-    </div>
-  </main>
-
-  <!-- ===== BOTTOM NAV ===== -->
-  <div class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <button class="bn active" data-tab="stocks">📈 Stocks</button>
-    <button class="bn" data-tab="funds">📊 Funds</button>
-    <button class="bn" data-tab="portfolio">📁 Portfolio</button>
-  </div>
-
-  <!-- ===== DETAIL MODAL (full screen slide-up) ===== -->
-  <div id="detailModal" class="modal hide" role="dialog" aria-hidden="true">
-    <div class="modal-inner">
-      <header class="modal-head">
-        <div class="modal-head-left">
-          <div id="modalAvatar" class="modal-avatar">RE</div>
-          <div class="modal-title" id="modalTitle">Reliance Industries Ltd</div>
-          <div class="modal-sub" id="modalSub">STOCK | RELIANCE</div>
+        <div id="stockList" class="list">
+            <!-- JS will insert items -->
         </div>
-        <button id="closeModal" class="modal-close" title="Close">✕</button>
-      </header>
 
-      <div class="modal-chart-wrap">
-        <canvas id="stockChart" width="800" height="280"></canvas>
-      </div>
+    </main>
 
-      <div class="trade-controls">
-        <label>Qty <input id="tradeQty" type="number" min="1" value="1"></label>
-        <div class="trade-buttons">
-          <button id="sellBtn" class="sell">SELL</button>
-          <button id="buyBtn" class="buy">BUY</button>
-          <button id="sipBtn" class="sip">SIP</button>
-        </div>
-      </div>
-
-      <div class="modal-tabs">
-        <button class="m-tab active" data-tab="details">Details</button>
-        <button class="m-tab" data-tab="orders">Orders</button>
-        <button class="m-tab" data-tab="news">News</button>
-      </div>
-
-      <div id="modalContent" class="modal-content">
-        <div class="details-panel">No details yet.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SCRIPTS ===== -->
-  <script src="scripts/main.js"></script>
+    <!-- SCRIPTS -->
+    <script src="scripts.js"></script>
 </body>
-  </html>
+</html>
