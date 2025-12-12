@@ -3,90 +3,106 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nivesh Yatra — Demo</title>
+  <title>Nivesh Yatra</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
 
   <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="brand">
-      <img id="siteLogo" src="/A_logo_design_design_features_a_square_icon_with_r.png" alt="logo" class="logo">
+      <img id="siteLogo" src="logo.png" alt="logo" class="logo" onerror="this.style.opacity=.2">
       <div class="brand-text">
         <div class="company-name">Nivesh Yatra</div>
         <div class="slogan">Turning dreams into Assets.</div>
       </div>
     </div>
+
     <div class="header-actions">
-      <button id="toggleView" title="Toggle visibility">👁️</button>
-      <button id="notifications">🔔</button>
+      <button id="toggleEye" class="icon-btn" title="Hide/Show values">👁️</button>
+      <button class="icon-btn" title="Notifications">🔔</button>
     </div>
   </header>
 
-  <main class="main">
-    <section class="summary card" id="summary">
-      <div class="summary-left">
-        <div class="label">MY ASSETS</div>
-        <div class="amount" id="totalAssets">₹0</div>
-        <div class="holdings" id="holdingsCount">Holdings: 0</div>
-      </div>
-      <div class="summary-right" id="oneDay">
-        <div class="change">+₹0 <small>(0.00%)</small></div>
+  <main>
+    <section class="summary">
+      <div class="summary-card">
+        <div>
+          <div class="muted">MY ASSETS</div>
+          <div id="totalAssets" class="big">₹0</div>
+          <div class="muted small" id="holdingCount">Holdings: 0</div>
+        </div>
+        <div class="summary-right">
+          <div class="pill" id="dayChange">+₹0 (0.00%)</div>
+        </div>
       </div>
     </section>
 
-    <h1 id="sectionTitle">Buy Stocks</h1>
+    <section id="contentArea" class="content-area">
+      <h1 id="sectionTitle">Buy Stocks</h1>
 
-    <section id="listArea" class="list-area">
-      <!-- cards injected here -->
+      <div id="listContainer" class="list"></div>
     </section>
   </main>
 
-  <!-- bottom nav -->
+  <!-- Bottom navigation -->
   <nav class="bottom-nav">
-    <button class="tab active" data-tab="stocks">📈 <span>Stocks</span></button>
-    <button class="tab" data-tab="funds">📊 <span>Funds</span></button>
-    <button class="tab" data-tab="portfolio">📁 <span>Portfolio</span></button>
+    <div class="nav-pill">
+      <button class="tab active" data-tab="stocks">📈 <span>Stocks</span></button>
+      <button class="tab" data-tab="funds">📊 <span>Funds</span></button>
+      <button class="tab" data-tab="portfolio">📁 <span>Portfolio</span></button>
+    </div>
   </nav>
 
-  <!-- full-screen detail modal -->
+  <!-- Fullscreen modal for details -->
   <div id="detailModal" class="modal hidden" aria-hidden="true">
-    <div class="modal-content">
-      <header class="detail-header">
-        <button id="closeDetail">←</button>
-        <div>
-          <div id="detailName" class="detail-name">Reliance Industries Ltd</div>
-          <div id="detailSubtitle" class="detail-sub">Stock | RELIANCE</div>
-        </div>
-        <div class="detail-price">
-          <div id="detailPrice">₹0</div>
-          <div id="detailPL" class="detail-pl"></div>
-        </div>
-      </header>
+    <div class="modal-top">
+      <button id="closeModal" class="close">✕</button>
+    </div>
 
-      <div class="chart-card card">
-        <canvas id="detailChart"></canvas>
-        <div class="range-controls">
-          <button class="range active" data-range="1d">1D</button>
-          <button class="range" data-range="1w">1W</button>
-          <button class="range" data-range="1m">1M</button>
-          <button class="range" data-range="6m">6M</button>
-          <button class="range" data-range="1y">1Y</button>
+    <div class="modal-body">
+      <div class="detail-header">
+        <div class="detail-left">
+          <div id="detailAvatar" class="avatar">RK</div>
+          <div>
+            <div id="detailName" class="detail-name">Name</div>
+            <div id="detailSub" class="detail-sub">Stock | TICKER</div>
+          </div>
+        </div>
+        <div class="detail-right">
+          <div id="detailPrice" class="detail-price">₹0</div>
+          <div id="detailPct" class="detail-pct"></div>
         </div>
       </div>
 
-      <div class="trade card">
-        <label>Qty <input type="number" id="tradeQty" value="1" min="1"></label>
-        <div class="trade-actions">
-          <button id="sellBtn" class="sell">Sell</button>
-          <button id="buyBtn" class="buy">Buy</button>
-          <button id="sipBtn" class="sip">SIP</button>
+      <div class="chart-card">
+        <canvas id="detailChart"></canvas>
+        <div class="ranges">
+          <button class="range active" data-range="1D">1D</button>
+          <button class="range" data-range="1W">1W</button>
+          <button class="range" data-range="1M">1M</button>
+          <button class="range" data-range="6M">6M</button>
+          <button class="range" data-range="1Y">1Y</button>
+        </div>
+      </div>
+
+      <div class="trade-area">
+        <label>Qty</label>
+        <input id="tradeQty" type="number" min="1" value="1" />
+        <div class="trade-btns">
+          <button id="sellBtn" class="btn sell">Sell</button>
+          <button id="buyBtn" class="btn buy">Buy</button>
+          <button id="sipBtn" class="btn sip">SIP</button>
         </div>
       </div>
     </div>
   </div>
 
-<script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
