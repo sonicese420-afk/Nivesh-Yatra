@@ -7,22 +7,22 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- App header -->
+  <!-- Header -->
   <header id="appHeader" class="app-header" role="banner">
     <div class="header-left">
-      <button id="logoBtn" class="logo-btn" aria-label="Open menu">
-        <!-- Inline SVG logo (replace if you want) -->
+      <button id="logoBtn" class="logo-btn" aria-label="Logo">
+        <!-- Inline minimal SVG logo; replace with your PNG if needed -->
         <svg width="56" height="56" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect width="100" height="100" rx="16" fill="#2c9686"></rect>
-          <g transform="translate(16,16)" fill="white">
-            <path d="M10 50 L30 20 L40 30 L20 60 Z" opacity="0.95"></path>
-            <path d="M60 20 L80 40 L70 50 L52 30 Z" opacity="0.95"></path>
+          <g transform="translate(14,14)" fill="white">
+            <path d="M20 46 L40 20 L48 28 L28 58 Z" opacity="0.95"></path>
+            <path d="M64 20 L84 40 L74 50 L56 32 Z" opacity="0.95"></path>
           </g>
         </svg>
       </button>
     </div>
 
-    <div class="brand">
+    <div class="brand" role="heading" aria-level="1">
       <div class="title">Nivesh Yatra</div>
       <div class="subtitle">Turning dreams into Assets.</div>
     </div>
@@ -33,7 +33,7 @@
     </div>
   </header>
 
-  <!-- Main content -->
+  <!-- Main -->
   <main id="app" class="app-container">
     <!-- Assets Card -->
     <section class="assets-card" aria-label="My assets">
@@ -57,30 +57,31 @@
     <!-- Sections -->
     <section id="stocksSection" class="section active-section" aria-labelledby="tabStocks">
       <h2 class="section-title">Buy Stocks</h2>
-      <div id="stocksList" class="list"></div>
+      <div id="stocksList" class="list" aria-live="polite"></div>
     </section>
 
     <section id="fundsSection" class="section" aria-labelledby="tabFunds" hidden>
       <h2 class="section-title">Mutual Funds</h2>
-      <div id="fundsList" class="list"></div>
+      <div id="fundsList" class="list" aria-live="polite"></div>
     </section>
 
     <section id="portfolioSection" class="section" aria-labelledby="tabPortfolio" hidden>
       <h2 class="section-title">Your Portfolio</h2>
-      <div id="portfolioList" class="list"></div>
+      <div id="portfolioList" class="list" aria-live="polite"></div>
     </section>
   </main>
 
-  <!-- Bottom pill nav (mobile-style) -->
+  <!-- Bottom pill nav -->
   <div class="bottom-pill" role="navigation" aria-label="Bottom navigation">
     <button class="pill-btn active" data-tab="stocks">📈 Stocks</button>
     <button class="pill-btn" data-tab="funds">📊 Funds</button>
     <button class="pill-btn" data-tab="portfolio">📁 Portfolio</button>
   </div>
 
-  <!-- Stock detail overlay (full-screen) -->
+  <!-- Detail overlay (full-screen) -->
   <div id="detailOverlay" class="detail-overlay" hidden>
-    <button id="closeDetail" class="detail-close" aria-label="Close">✕</button>
+    <button id="closeDetail" class="detail-close" aria-label="Close detail">✕</button>
+
     <div class="detail-header">
       <div class="detail-left">
         <div id="detailAvatar" class="detail-avatar">RE</div>
@@ -89,16 +90,16 @@
           <div id="detailSub" class="detail-sub">Stock | RELIANCE</div>
         </div>
       </div>
+
       <div class="detail-right">
         <div id="detailPrice" class="detail-price">₹0</div>
         <div id="detailChangeBadge" class="detail-change-badge" hidden>▲ 0.00%</div>
       </div>
     </div>
 
-    <!-- Chart area -->
     <div class="detail-chart-wrap">
       <canvas id="detailChart" class="detail-chart" width="800" height="320"></canvas>
-      <div class="chart-controls">
+      <div class="chart-controls" role="toolbar" aria-label="Chart controls">
         <button class="chart-btn active" data-range="1d">1D</button>
         <button class="chart-btn" data-range="1w">1W</button>
         <button class="chart-btn" data-range="1m">1M</button>
@@ -107,7 +108,6 @@
       </div>
     </div>
 
-    <!-- action area -->
     <div class="detail-actions">
       <label for="qtyInput" class="qty-label">Qty</label>
       <input id="qtyInput" class="qty-input" type="number" min="1" value="1" />
@@ -118,8 +118,7 @@
       </div>
     </div>
 
-    <!-- tabs inside detail (for future) -->
-    <div class="detail-tabs">
+    <div class="detail-tabs" role="tablist" aria-label="Detail tabs">
       <button class="detail-tab active">Details</button>
       <button class="detail-tab">Orders</button>
       <button class="detail-tab">News</button>
@@ -128,4 +127,4 @@
 
   <script src="script.js" defer></script>
 </body>
-</html>
+      </html>
