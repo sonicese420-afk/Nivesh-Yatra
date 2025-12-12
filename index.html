@@ -1,120 +1,117 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nivesh Yatra - Demo</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nivesh-Yatra</title>
 
-  <!-- Chart.js CDN (used for charts) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Link CSS -->
+    <link rel="stylesheet" href="styles/styles.css" />
 
-  <!-- App styles -->
-  <link rel="stylesheet" href="style.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-  <!-- Header: logo left, brand center, icons right -->
-  <header class="site-header" role="banner">
-    <div class="header-inner">
-      <div class="left-area">
-        <img src="logo.png" alt="Nivesh Yatra logo" class="logo" />
-      </div>
 
-      <div class="center-area">
-        <div class="brand-title">Nivesh Yatra</div>
-        <div class="brand-sub">Turning dreams into Assets.</div>
-      </div>
-
-      <div class="right-area">
-        <button id="btnVisibility" class="icon-btn" title="Toggle visibility">👁️</button>
-        <button id="btnNotify" class="icon-btn" title="Notifications">🔔</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main content -->
-  <main id="app" role="main">
-    <!-- Summary card -->
-    <section class="summary-wrap">
-      <div class="summary-card">
-        <div class="summary-left">
-          <div class="label">MY ASSETS</div>
-          <div id="totalAssets" class="total-amount">₹0</div>
-          <div id="holdingsCount" class="holdings">Holdings: 0</div>
+    <!-- HEADER -->
+    <header class="app-header">
+        <div class="left-header">
+            <img src="logo.png" class="app-logo" />
+            <div class="title-group">
+                <h1 class="app-title">Nivesh-Yatra</h1>
+                <p class="app-subtitle">Turning Dreams Into Assets</p>
+            </div>
         </div>
-        <div class="summary-right">
-          <div id="totalChange" class="change-pill">+₹0 (0.00%)</div>
-        </div>
-      </div>
+
+        <button id="profileBtn" class="profile-btn">👤</button>
+    </header>
+
+    <!-- SLIDE PROFILE PANEL -->
+    <section id="profilePanel" class="profile-panel">
+        <h2>Your Profile</h2>
+        <p><strong>Demo Money:</strong> ₹<span id="walletBalance">10000</span></p>
+
+        <button id="addMoneyBtn" class="add-money-btn">Add ₹1000</button>
+
+        <h3>About</h3>
+        <p class="about-text">
+            Powered by <strong>Ann Muulya</strong><br>
+            Made by <strong>G²</strong>
+        </p>
+
+        <button id="closeProfile" class="close-profile">Close</button>
     </section>
 
-    <!-- Page title -->
-    <h2 id="sectionTitle" class="section-title">Buy Stocks</h2>
+    <!-- MAIN CONTENT SCREEN -->
+    <main id="screenContainer">
 
-    <!-- Content area where stocks/funds/portfolio render -->
-    <section id="contentArea" class="content-area">
-      <div id="cardsContainer" class="cards-container">
-        <!-- JS will inject stock/fund/portfolio cards here -->
-      </div>
-    </section>
-  </main>
+        <!-- STOCKS SCREEN -->
+        <section id="stocksScreen" class="screen active-screen">
+            <h2 class="screen-title">Stocks</h2>
 
-  <!-- Bottom tab navigation -->
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <button class="tab active" data-tab="stocks" id="tabStocks">📈 Stocks</button>
-    <button class="tab" data-tab="funds" id="tabFunds">📊 Funds</button>
-    <button class="tab" data-tab="portfolio" id="tabPortfolio">📁 Portfolio</button>
-  </nav>
+            <!-- Explore section -->
+            <div class="stock-list" id="stocksList">
+                <!-- JS will insert stock cards -->
+            </div>
+        </section>
 
-  <!-- STOCK DETAIL (full-height drawer modal) -->
-  <div id="detailDrawer" class="drawer hidden" aria-hidden="true">
-    <div class="drawer-backdrop" id="drawerBackdrop"></div>
-    <div class="drawer-content" role="dialog" aria-modal="true">
-      <button id="closeDrawer" class="drawer-close" aria-label="Close">✕</button>
+        <!-- FUNDS SCREEN -->
+        <section id="fundsScreen" class="screen">
+            <h2 class="screen-title">Mutual Funds</h2>
 
-      <div class="drawer-top">
-        <div class="drawer-left">
-          <div id="detailAvatar" class="avatar-sm">--</div>
-          <div class="drawer-meta">
-            <div id="detailName" class="drawer-name">Company Name</div>
-            <div id="detailType" class="drawer-type">Stock | SYMBOL</div>
-          </div>
-        </div>
+            <div class="fund-list" id="fundsList">
+                <!-- JS will insert fund cards -->
+            </div>
+        </section>
 
-        <div class="drawer-right">
-          <div id="detailPriceLarge" class="detail-price-large">₹0</div>
-          <div id="detailChangeLarge" class="detail-change-large">▲0.00%</div>
-        </div>
-      </div>
+        <!-- PORTFOLIO SCREEN -->
+        <section id="portfolioScreen" class="screen">
+            <h2 class="screen-title">Portfolio</h2>
 
-      <div class="drawer-chart-wrap">
-        <canvas id="detailChart" width="800" height="320"></canvas>
-        <div class="drawer-ranges">
-          <button class="range-btn active" data-range="1D">1D</button>
-          <button class="range-btn" data-range="1W">1W</button>
-          <button class="range-btn" data-range="1M">1M</button>
-          <button class="range-btn" data-range="6M">6M</button>
-          <button class="range-btn" data-range="1Y">1Y</button>
-        </div>
-      </div>
+            <div id="portfolioSummary"></div>
 
-      <div class="drawer-trade">
-        <label for="tradeQty" class="trade-label">Qty</label>
-        <input id="tradeQty" class="trade-input" type="number" min="1" value="1" />
-        <div class="trade-buttons">
-          <button id="sellAction" class="btn sell">SELL</button>
-          <button id="buyAction" class="btn buy">BUY</button>
-          <button id="sipAction" class="btn sip">SIP</button>
-        </div>
-      </div>
+            <h3>Your Holdings</h3>
+            <div id="holdingsList"></div>
+        </section>
 
-      <div class="drawer-tabs">
-        <button class="drawer-tab active">Details</button>
-        <button class="drawer-tab">Orders</button>
-      </div>
-    </div>
-  </div>
+        <!-- STOCK/FUND DETAIL SCREEN -->
+        <section id="detailScreen" class="screen hidden">
+            <button id="backToMain" class="back-btn">← Back</button>
 
-  <!-- App script -->
-  <script src="script.js"></script>
+            <h2 id="detailName"></h2>
+            <p id="detailPrice"></p>
+
+            <canvas id="detailChart"></canvas>
+
+            <div class="time-buttons">
+                <button data-time="1M">1M</button>
+                <button data-time="3M">3M</button>
+                <button data-time="6M" class="active">6M</button>
+            </div>
+
+            <div class="trade-buttons">
+                <button id="buyBtn" class="buy-btn">Buy</button>
+                <button id="sellBtn" class="sell-btn">Sell</button>
+                <button id="sipBtn" class="sip-btn">SIP</button>
+            </div>
+
+            <div id="tradeBox" class="trade-box hidden">
+                <input type="number" id="tradeInput" placeholder="Enter amount or quantity" />
+                <button id="confirmTrade">Confirm</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-screen="stocksScreen">Stocks</button>
+        <button class="nav-btn" data-screen="fundsScreen">Funds</button>
+        <button class="nav-btn" data-screen="portfolioScreen">Portfolio</button>
+    </nav>
+
+    <!-- Link JS -->
+    <script src="scripts/scripts.js"></script>
 </body>
-</html>
+      </html>
